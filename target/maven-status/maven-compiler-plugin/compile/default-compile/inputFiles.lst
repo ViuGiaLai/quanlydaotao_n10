@@ -1,4 +1,12 @@
 D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\DemoApplication.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\controller\ExamPaperController.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\controller\ExamTypeController.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\model\entity\ExamPaper.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\model\entity\ExamType.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\repository\ExamPaperRepository.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\repository\ExamTypeRepository.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\service\ExamPaperService.java
+D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n10\service\ExamTypeService.java
 D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n1\controller\PermissionApiController.java
 D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n1\controller\RoleApiController.java
 D:\Hoc_spring_boot\TrainingManagementSystem\quanlydaotao\src\main\java\com\example\demo\n1\controller\RolePermissionApiController.java

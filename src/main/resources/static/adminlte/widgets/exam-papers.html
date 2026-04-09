@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đề Thi</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+        .card {
+            box-shadow: 0 0 1px rgba(0, 0, 0, 0.125);
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        .file-link {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="h3">
+                <i class="fas fa-file-pdf"></i> Quản Lý Đề Thi
+            </h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExamPaperModal">
+                <i class="fas fa-plus"></i> Thêm Đề Thi
+            </button>
+        </div>
+    </div>
+
+    <!-- Card chính -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-table"></i> Danh Sách Đề Thi
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Bảng danh sách -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="examPapersTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 20%">Mã Đề Thi</th>
+                            <th style="width: 30%">ID Kỳ Thi</th>
+                            <th style="width: 25%">File Đề</th>
+                            <th style="width: 15%">Trạng Thái</th>
+                            <th style="width: 15%">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="examPapersTableBody">
+                        <!-- Dữ liệu sẽ được load bằng JavaScript -->
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Đề Thi -->
+<div class="modal fade" id="addExamPaperModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Thêm Đề Thi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="examPaperForm">
+                    <input type="hidden" id="examPaperId">
+                    
+                    <div class="mb-3">
+                        <label for="examPaperExamId" class="form-label">ID Kỳ Thi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="examPaperExamId" placeholder="VD: 550e8400-e29b-41d4-a716-446655440000" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="examPaperCode" class="form-label">Mã Đề Thi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="examPaperCode" placeholder="VD: ĐỀ-001, ĐỀ-002..." required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="examPaperFileUrl" class="form-label">Đường Dẫn File Đề</label>
+                        <input type="url" class="form-control" id="examPaperFileUrl" placeholder="https://example.com/file.pdf">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="examPaperIsActive" checked>
+                            <label class="form-check-label" for="examPaperIsActive">
+                                Kích hoạt
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveExamPaperBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_URL = '/api/exam-papers';
+
+    // Load danh sách đề thi
+    function loadExamPapers() {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('examPapersTableBody');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Không có dữ liệu</td></tr>';
+                    return;
+                }
+
+                data.forEach((item, index) => {
+                    const statusBadge = item.isActive 
+                        ? '<span class="badge bg-success">Hoạt động</span>' 
+                        : '<span class="badge bg-danger">Vô hiệu</span>';
+                    
+                    const fileLink = item.fileUrl 
+                        ? `<a href="${item.fileUrl}" target="_blank" class="file-link"><i class="fas fa-download"></i> Tải xuống</a>`
+                        : '<span class="text-muted">Chưa có file</span>';
+                    
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${item.paperCode || 'N/A'}</strong></td>
+                            <td><small class="text-muted">${item.examId || 'N/A'}</small></td>
+                            <td>${fileLink}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="editExamPaper('${item.id}')">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteExamPaper('${item.id}')">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                document.getElementById('examPapersTableBody').innerHTML = 
+                    '<tr><td colspan="6" class="text-center text-danger py-4">Lỗi khi tải dữ liệu</td></tr>';
+            });
+    }
+
+    // Thêm đề thi mới
+    document.getElementById('saveExamPaperBtn').addEventListener('click', function() {
+        const id = document.getElementById('examPaperId').value;
+        const examId = document.getElementById('examPaperExamId').value;
+        const paperCode = document.getElementById('examPaperCode').value;
+        const fileUrl = document.getElementById('examPaperFileUrl').value;
+        const isActive = document.getElementById('examPaperIsActive').checked;
+
+        if (!examId.trim() || !paperCode.trim()) {
+            alert('Vui lòng nhập ID kỳ thi và mã đề thi');
+            return;
+        }
+
+        const data = {
+            examId: examId,
+            paperCode: paperCode,
+            fileUrl: fileUrl || null,
+            isActive: isActive
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_URL}/${id}` : API_URL;
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            alert(id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+            bootstrap.Modal.getInstance(document.getElementById('addExamPaperModal')).hide();
+            resetForm();
+            loadExamPapers();
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        });
+    });
+
+    // Sửa đề thi
+    function editExamPaper(id) {
+        fetch(`${API_URL}/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('examPaperId').value = data.id;
+                document.getElementById('examPaperExamId').value = data.examId;
+                document.getElementById('examPaperCode').value = data.paperCode;
+                document.getElementById('examPaperFileUrl').value = data.fileUrl || '';
+                document.getElementById('examPaperIsActive').checked = data.isActive;
+                document.getElementById('modalTitle').textContent = 'Sửa Đề Thi';
+                
+                const modal = new bootstrap.Modal(document.getElementById('addExamPaperModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Không thể tải dữ liệu');
+            });
+    }
+
+    // Xóa đề thi
+    function deleteExamPaper(id) {
+        if (confirm('Bạn có chắc chắn muốn xóa?')) {
+            fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Xóa thành công!');
+                    loadExamPapers();
+                } else {
+                    alert('Lỗi khi xóa');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra');
+            });
+        }
+    }
+
+    // Reset form
+    function resetForm() {
+        document.getElementById('examPaperForm').reset();
+        document.getElementById('examPaperId').value = '';
+        document.getElementById('modalTitle').textContent = 'Thêm Đề Thi';
+    }
+
+    // Reset form khi đóng modal
+    document.getElementById('addExamPaperModal').addEventListener('hidden.bs.modal', function() {
+        resetForm();
+    });
+
+    // Load dữ liệu khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadExamPapers();
+    });
+</script>
+</body>
+</html>
