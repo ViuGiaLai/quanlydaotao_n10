@@ -699,13 +699,15 @@
                 <div class="container-fluid">
                     <!--begin::Row-->
                     <div class="row">
-                    <div class="col-sm-6"><h3 class="mb-0">Quản Lý Loại Kỳ Thi</h3></div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Quản Lý Loại Kỳ Thi</li>
-                        </ol>
-                    </div>
+                        <div class="col-sm-6">
+                            <h3 class="mb-0">Small Box</h3>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-end">
+                                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Small Box</li>
+                            </ol>
+                        </div>
                     </div>
                     <!--end::Row-->
                 </div>
@@ -903,24 +905,14 @@
             const method = id ? "PUT" : "POST";
             const url = id ? `${API_URL}/${id}` : API_URL;
 
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(type)
-                });
+            await fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(type)
+            });
 
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(errorText || "Không thể lưu loại kỳ thi.");
-                }
-
-                $("#examTypeModal").modal("hide");
-                loadExamTypes();
-            } catch (error) {
-                console.error("Save exam type error:", error);
-                alert("Lưu loại kỳ thi thất bại. Vui lòng kiểm tra dữ liệu và thử lại.");
-            }
+            $("#examTypeModal").modal("hide");
+            loadExamTypes();
         }
 
         async function deleteExamType(id) {

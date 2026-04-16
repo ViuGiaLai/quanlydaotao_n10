@@ -22,7 +22,7 @@
     <!--begin::Accessibility Features-->
     <!-- Skip links will be dynamically added by accessibility.js -->
     <meta name="supported-color-schemes" content="light dark" />
-
+    
     <link rel="preload" href="../css/adminlte.css" as="style" />
     <!--end::Accessibility Features-->
     <!--begin::Fonts-->
@@ -699,13 +699,15 @@
                 <div class="container-fluid">
                     <!--begin::Row-->
                     <div class="row">
-                    <div class="col-sm-6"><h3 class="mb-0">Quản Lý Loại Kỳ Thi</h3></div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Quản Lý Loại Kỳ Thi</li>
-                        </ol>
-                    </div>
+                        <div class="col-sm-6">
+                            <h3 class="mb-0">Small Box</h3>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-end">
+                                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Small Box</li>
+                            </ol>
+                        </div>
                     </div>
                     <!--end::Row-->
                 </div>
@@ -720,7 +722,7 @@
                     <div class="row mb-3">
                         <div class="col-12 text-end">
                             <button class="btn btn-primary" onclick="openAddModal()">
-                                <i class="bi bi-plus-lg"></i> Thêm Loại Kỳ Thi
+                                <i class="bi bi-plus-lg"></i> Thêm Đề Thi
                             </button>
                         </div>
                     </div>
@@ -728,20 +730,21 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h3 class="card-title">Danh Sách Loại Kỳ Thi</h3>
+                                    <h3 class="card-title">Danh Sách Đề Thi</h3>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-striped align-middle">
                                             <thead>
                                                 <tr>
-                                                    <th>Tên Loại Kỳ Thi</th>
-                                                    <th>Mô Tả</th>
+                                                    <th>Mã Đề Thi</th>
+                                                    <th>ID Kỳ Thi</th>
+                                                    <th>File Đề</th>
                                                     <th>Trạng Thái</th>
                                                     <th>Hành Động</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="examTypeTable">
+                                            <tbody id="examPaperTable">
                                                 <!-- Data will be loaded here -->
                                             </tbody>
                                         </table>
@@ -774,24 +777,28 @@
     </div>
     <!--end::App Wrapper-->
 
-    <!-- Modal Thêm/Sửa Loại Kỳ Thi -->
-    <div class="modal fade" id="examTypeModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <!-- Modal Thêm/Sửa Đề Thi -->
+    <div class="modal fade" id="examPaperModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Thêm Loại Kỳ Thi</h5>
+                    <h5 class="modal-title" id="modalTitle">Thêm Đề Thi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="examTypeForm">
-                        <input type="hidden" id="examTypeId">
+                    <form id="examPaperForm">
+                        <input type="hidden" id="examPaperId">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Tên Loại Kỳ Thi</label>
-                            <input type="text" class="form-control" id="name" required>
+                            <label for="examId" class="form-label">ID Kỳ Thi</label>
+                            <input type="text" class="form-control" id="examId" required>
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Mô Tả</label>
-                            <textarea class="form-control" id="description" rows="3"></textarea>
+                            <label for="paperCode" class="form-label">Mã Đề Thi</label>
+                            <input type="text" class="form-control" id="paperCode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fileUrl" class="form-label">Đường Dẫn File Đề</label>
+                            <input type="url" class="form-control" id="fileUrl">
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
@@ -803,7 +810,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveExamType()">Lưu</button>
+                    <button type="button" class="btn btn-primary" onclick="saveExamPaper()">Lưu</button>
                 </div>
             </div>
         </div>
@@ -848,88 +855,81 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const API_URL = "/api/exam-types";
+        const API_URL = "/api/exam-papers";
 
-        async function loadExamTypes() {
+        async function loadExamPapers() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 let html = "";
-                data.forEach(t => {
+                data.forEach(p => {
                     html += `
                         <tr>
-                            <td>${t.name}</td>
-                            <td>${t.description || '-'}</td>
-                            <td><span class="badge ${t.isActive ? 'text-bg-success' : 'text-bg-danger'}">${t.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
+                            <td>${p.paperCode}</td>
+                            <td><small>${p.examId}</small></td>
+                            <td>${p.fileUrl ? `<a href="${p.fileUrl}" target="_blank"><i class="bi bi-download"></i></a>` : '-'}</td>
+                            <td><span class="badge ${p.isActive ? 'text-bg-success' : 'text-bg-danger'}">${p.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
                             <td>
-                                <button class="btn btn-warning btn-sm" onclick='editExamType(${JSON.stringify(t)})'>
+                                <button class="btn btn-warning btn-sm" onclick='editExamPaper(${JSON.stringify(p)})'>
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteExamType('${t.id}')">
+                                <button class="btn btn-danger btn-sm" onclick="deleteExamPaper('${p.id}')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
-                document.getElementById("examTypeTable").innerHTML = html;
+                document.getElementById("examPaperTable").innerHTML = html;
             } catch (e) { console.error("Load error:", e); }
         }
 
         function openAddModal() {
-            document.getElementById("modalTitle").innerText = "Thêm Loại Kỳ Thi";
-            document.getElementById("examTypeId").value = "";
-            document.getElementById("examTypeForm").reset();
-            $("#examTypeModal").modal("show");
+            document.getElementById("modalTitle").innerText = "Thêm Đề Thi";
+            document.getElementById("examPaperId").value = "";
+            document.getElementById("examPaperForm").reset();
+            $("#examPaperModal").modal("show");
         }
 
-        function editExamType(t) {
-            document.getElementById("modalTitle").innerText = "Sửa Loại Kỳ Thi";
-            document.getElementById("examTypeId").value = t.id;
-            document.getElementById("name").value = t.name;
-            document.getElementById("description").value = t.description || "";
-            document.getElementById("isActive").checked = t.isActive;
-            $("#examTypeModal").modal("show");
+        function editExamPaper(p) {
+            document.getElementById("modalTitle").innerText = "Sửa Đề Thi";
+            document.getElementById("examPaperId").value = p.id;
+            document.getElementById("examId").value = p.examId;
+            document.getElementById("paperCode").value = p.paperCode;
+            document.getElementById("fileUrl").value = p.fileUrl || "";
+            document.getElementById("isActive").checked = p.isActive;
+            $("#examPaperModal").modal("show");
         }
 
-        async function saveExamType() {
-            const id = document.getElementById("examTypeId").value;
-            const type = {
-                name: document.getElementById("name").value,
-                description: document.getElementById("description").value,
+        async function saveExamPaper() {
+            const id = document.getElementById("examPaperId").value;
+            const paper = {
+                examId: document.getElementById("examId").value,
+                paperCode: document.getElementById("paperCode").value,
+                fileUrl: document.getElementById("fileUrl").value,
                 isActive: document.getElementById("isActive").checked
             };
 
             const method = id ? "PUT" : "POST";
             const url = id ? `${API_URL}/${id}` : API_URL;
 
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(type)
-                });
+            await fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(paper)
+            });
 
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(errorText || "Không thể lưu loại kỳ thi.");
-                }
-
-                $("#examTypeModal").modal("hide");
-                loadExamTypes();
-            } catch (error) {
-                console.error("Save exam type error:", error);
-                alert("Lưu loại kỳ thi thất bại. Vui lòng kiểm tra dữ liệu và thử lại.");
-            }
+            $("#examPaperModal").modal("hide");
+            loadExamPapers();
         }
 
-        async function deleteExamType(id) {
+        async function deleteExamPaper(id) {
             if (!confirm("Bạn có chắc muốn xóa?")) return;
             await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-            loadExamTypes();
+            loadExamPapers();
         }
 
-        document.addEventListener('DOMContentLoaded', loadExamTypes);
+        document.addEventListener('DOMContentLoaded', loadExamPapers);
     </script>
     <!--end::OverlayScrollbars Configure-->
     <!--end::Script-->
