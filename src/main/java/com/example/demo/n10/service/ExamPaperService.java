@@ -26,9 +26,10 @@ public class ExamPaperService {
     }
 
     public ExamPaper save(ExamPaper examPaper) {
-        if (examPaper.getId() == null) {
-            examPaper.setId(UUID.randomUUID());
+        if (examPaper.getCreatedAt() == null) {
             examPaper.setCreatedAt(LocalDateTime.now());
+        }
+        if (examPaper.getIsActive() == null) {
             examPaper.setIsActive(true);
         }
         examPaper.setUpdatedAt(LocalDateTime.now());

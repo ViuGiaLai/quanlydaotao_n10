@@ -26,9 +26,10 @@ public class ExamTypeService {
     }
 
     public ExamType save(ExamType examType) {
-        if (examType.getId() == null) {
-            examType.setId(UUID.randomUUID());
+        if (examType.getCreatedAt() == null) {
             examType.setCreatedAt(LocalDateTime.now());
+        }
+        if (examType.getIsActive() == null) {
             examType.setIsActive(true);
         }
         examType.setUpdatedAt(LocalDateTime.now());

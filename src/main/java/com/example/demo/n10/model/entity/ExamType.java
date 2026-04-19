@@ -12,7 +12,7 @@ public class ExamType {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "name", length = 100, nullable = false)
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
     private String name;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")

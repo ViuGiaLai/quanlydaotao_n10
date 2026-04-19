@@ -699,13 +699,15 @@
                 <div class="container-fluid">
                     <!--begin::Row-->
                     <div class="row">
-                    <div class="col-sm-6"><h3 class="mb-0">Quản Lý Loại Kỳ Thi</h3></div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-end">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Quản Lý Loại Kỳ Thi</li>
-                        </ol>
-                    </div>
+                        <div class="col-sm-6">
+                            <h3 class="mb-0">Quản Lý Phòng Thi</h3>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-end">
+                                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Quản Lý Phòng Thi</li>
+                            </ol>
+                        </div>
                     </div>
                     <!--end::Row-->
                 </div>
@@ -719,8 +721,8 @@
                     <!-- START: Added Content -->
                     <div class="row mb-3">
                         <div class="col-12 text-end">
-                            <button class="btn btn-primary" onclick="openAddModal()">
-                                <i class="bi bi-plus-lg"></i> Thêm Loại Kỳ Thi
+                            <button class="btn btn-primary" onclick="openExamModal()">
+                                <i class="bi bi-plus-lg"></i> Thêm Phòng Thi
                             </button>
                         </div>
                     </div>
@@ -728,21 +730,22 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h3 class="card-title">Danh Sách Loại Kỳ Thi</h3>
+                                    <h3 class="card-title">Danh Sách Phòng Thi</h3>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-striped align-middle">
                                             <thead>
                                                 <tr>
-                                                    <th>Tên Loại Kỳ Thi</th>
-                                                    <th>Mô Tả</th>
+                                                    <th>ID Kỳ Thi</th>
+                                                    <th>ID Phòng</th>
+                                                    <th>Tên Phòng</th>
+                                                    <th>Sức Chứa</th>
                                                     <th>Trạng Thái</th>
-                                                    <th>Hành Động</th>
+                                                    <th>Thao Tác</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="examTypeTable">
-                                                <!-- Data will be loaded here -->
+                                            <tbody id="examTableBody">
                                             </tbody>
                                         </table>
                                     </div>
@@ -774,25 +777,38 @@
     </div>
     <!--end::App Wrapper-->
 
-    <!-- Modal Thêm/Sửa Loại Kỳ Thi -->
-    <div class="modal fade" id="examTypeModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <!-- Modal Thêm/Sửa Đề Thi -->
+    <div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Thêm Loại Kỳ Thi</h5>
+                    <h5 class="modal-title" id="modalTitle">Thêm Lịch Thi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="examTypeForm">
-                        <input type="hidden" id="examTypeId">
+                    <form id="examForm">
+                        <input type="hidden" id="examRoomId">
+
                         <div class="mb-3">
-                            <label for="name" class="form-label">Tên Loại Kỳ Thi</label>
-                            <input type="text" class="form-control" id="name" required>
+                            <label for="examId" class="form-label">ID Kỳ Thi (exam_id)</label>
+                            <input type="text" class="form-control" id="examId" placeholder="Nhập UUID kỳ thi..."
+                                required>
                         </div>
+
                         <div class="mb-3">
-                            <label for="description" class="form-label">Mô Tả</label>
-                            <textarea class="form-control" id="description" rows="3"></textarea>
+                            <label for="roomId" class="form-label">ID Phòng Học (room_id)</label>
+                            <input type="text" class="form-control" id="roomId" placeholder="Nhập UUID phòng học..."
+                                required>
                         </div>
+<div class="mb-3">
+    <label for="examRoomName" class="form-label">Tên Phòng Thi</label>
+    <input type="text" class="form-control" id="examRoomName" placeholder="Ví dụ: Phòng 101 - Khu A">
+</div>
+                        <div class="mb-3">
+                            <label for="capacity" class="form-label">Sức Chứa (capacity)</label>
+                            <input type="number" class="form-control" id="capacity" placeholder="Ví dụ: 40">
+                        </div>
+
                         <div class="mb-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="isActive" checked>
@@ -803,7 +819,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveExamType()">Lưu</button>
+                    <button type="button" class="btn btn-primary" onclick="saveExamRoom()">Lưu</button>
                 </div>
             </div>
         </div>
@@ -844,92 +860,132 @@
     </script>
 
     <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const API_URL = "/api/exam-types";
+        const API_URL = "/api/exam-rooms"; // Đổi đường dẫn API
 
-        async function loadExamTypes() {
+        async function loadExamRooms() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 let html = "";
-                data.forEach(t => {
+                // TRONG FILE exam-rooms.html
+                data.forEach(room => {
                     html += `
-                        <tr>
-                            <td>${t.name}</td>
-                            <td>${t.description || '-'}</td>
-                            <td><span class="badge ${t.isActive ? 'text-bg-success' : 'text-bg-danger'}">${t.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick='editExamType(${JSON.stringify(t)})'>
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteExamType('${t.id}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+    <tr>
+        <td>${room.examId}</td>
+        
+        <td>${room.roomId}</td>
+        
+        <td>${room.examRoomName || 'Chưa đặt tên'}</td>
+        
+        <td>${room.capacity}</td>
+        
+        <td>
+            <span class="badge ${room.isActive ? 'text-bg-success' : 'text-bg-danger'}">
+                ${room.isActive ? 'Hoạt động' : 'Vô hiệu'}
+            </span>
+        </td>
+        
+        <td>
+            <button class="btn btn-warning btn-sm" onclick='editExamRoom(${JSON.stringify(room)})'>
+                <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteExamRoom('${room.id}')">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>`;
                 });
-                document.getElementById("examTypeTable").innerHTML = html;
-            } catch (e) { console.error("Load error:", e); }
-        }
-
-        function openAddModal() {
-            document.getElementById("modalTitle").innerText = "Thêm Loại Kỳ Thi";
-            document.getElementById("examTypeId").value = "";
-            document.getElementById("examTypeForm").reset();
-            $("#examTypeModal").modal("show");
-        }
-
-        function editExamType(t) {
-            document.getElementById("modalTitle").innerText = "Sửa Loại Kỳ Thi";
-            document.getElementById("examTypeId").value = t.id;
-            document.getElementById("name").value = t.name;
-            document.getElementById("description").value = t.description || "";
-            document.getElementById("isActive").checked = t.isActive;
-            $("#examTypeModal").modal("show");
-        }
-
-        async function saveExamType() {
-            const id = document.getElementById("examTypeId").value;
-            const type = {
-                name: document.getElementById("name").value,
-                description: document.getElementById("description").value,
-                isActive: document.getElementById("isActive").checked
-            };
-
-            const method = id ? "PUT" : "POST";
-            const url = id ? `${API_URL}/${id}` : API_URL;
-
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(type)
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(errorText || "Không thể lưu loại kỳ thi.");
-                }
-
-                $("#examTypeModal").modal("hide");
-                loadExamTypes();
-            } catch (error) {
-                console.error("Save exam type error:", error);
-                alert("Lưu loại kỳ thi thất bại. Vui lòng kiểm tra dữ liệu và thử lại.");
+                document.getElementById("examTableBody").innerHTML = html;
+            } catch (e) {
+                console.error("Lỗi tải dữ liệu phòng thi:", e);
             }
         }
 
-        async function deleteExamType(id) {
-            if (!confirm("Bạn có chắc muốn xóa?")) return;
-            await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-            loadExamTypes();
+        function openExamModal() {
+            document.getElementById("modalTitle").innerText = "Thêm Phòng Thi";
+
+            // CỰC KỲ QUAN TRỌNG: Phải xóa ID cũ trong ô ẩn đi
+            document.getElementById("examRoomId").value = "";
+
+            document.getElementById("examForm").reset();
+            const myModal = new bootstrap.Modal(document.getElementById('examModal'));
+            myModal.show();
         }
 
-        document.addEventListener('DOMContentLoaded', loadExamTypes);
+        function editExamRoom(room) {
+    document.getElementById("modalTitle").innerText = "Chỉnh Sửa Phòng Thi";
+    document.getElementById("examRoomId").value = room.id;
+    
+    // Đổ tên phòng vào ô input để khi lưu nó không bị mất
+    if(document.getElementById("examRoomName")) {
+        document.getElementById("examRoomName").value = room.examRoomName || "";
+    }
+    
+    document.getElementById("examId").value = room.examId;
+    document.getElementById("roomId").value = room.roomId;
+    document.getElementById("capacity").value = room.capacity;
+    document.getElementById("isActive").checked = room.isActive;
+
+    const myModal = new bootstrap.Modal(document.getElementById('examModal'));
+    myModal.show();
+}
+
+        // 2. Hàm Lưu dữ liệu xuống SQL Server
+        async function saveExamRoom() {
+            // Lấy ID từ ô ẩn ra
+            const id = document.getElementById("examRoomId").value;
+    const method = id ? "PUT" : "POST";
+    const url = id ? `${API_URL}/${id}` : API_URL;
+
+    const roomData = {
+        examId: document.getElementById("examId").value,
+        roomId: document.getElementById("roomId").value,
+        capacity: document.getElementById("capacity").value,
+        isActive: document.getElementById("isActive").checked,
+        // PHẢI THÊM DÒNG NÀY ĐỂ GỬI TÊN PHÒNG LÊN SERVER
+        examRoomName: document.getElementById("examRoomName") ? document.getElementById("examRoomName").value : ""
+    };
+
+            try {
+                const res = await fetch(url, {
+                    method: method, // Gửi PUT hoặc POST tùy vào biến id
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(roomData)
+                });
+
+                if (res.ok) {
+                    alert(id ? "Cập nhật thành công!" : "Thêm mới thành công!");
+                    bootstrap.Modal.getInstance(document.getElementById('examModal')).hide();
+                    loadExamRooms(); // Tải lại bảng
+                }
+            } catch (e) {
+                console.error("Lỗi khi lưu:", e);
+            }
+        }
+
+        async function deleteExamRoom(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa phòng thi này không?")) {
+                try {
+                    const res = await fetch(`${API_URL}/${id}`, {
+                        method: "DELETE" // Gọi đúng phương thức DELETE đã viết ở Backend
+                    });
+
+                    if (res.ok) {
+                        alert("Xóa phòng thi thành công!");
+                        loadExamRooms(); // Tải lại danh sách sau khi xóa thành công
+                    } else {
+                        alert("Lỗi khi xóa: " + res.status);
+                    }
+                } catch (error) {
+                    console.error("Lỗi xóa phòng thi:", error);
+                }
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', loadExamRooms);
     </script>
     <!--end::OverlayScrollbars Configure-->
     <!--end::Script-->
