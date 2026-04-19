@@ -195,15 +195,15 @@
           <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
               <img src="./assets/img/user2-160x160.jpg" class="user-image rounded-circle shadow" alt="User Image" />
-              <span class="d-none d-md-inline">Alexander Pierce</span>
+              <span id="currentUsernameNav" class="d-none d-md-inline">Dang tai...</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
               <!--begin::User Image-->
               <li class="user-header text-bg-primary">
                 <img src="./assets/img/user2-160x160.jpg" class="rounded-circle shadow" alt="User Image" />
                 <p>
-                  Alexander Pierce - Web Developer
-                  <small>Member since Nov. 2023</small>
+                  <span id="currentUsernameHeader">Dang tai...</span> - Nguoi dung he thong
+                  <small>Dang nhap tu session hien tai</small>
                 </p>
               </li>
               <!--end::User Image-->
@@ -221,7 +221,7 @@
               <!--begin::Menu Footer-->
               <li class="user-footer">
                 <a href="#" class="btn btn-default btn-flat">Profile</a>
-                <a href="#" class="btn btn-default btn-flat float-end">Sign out</a>
+                <a href="/logout" class="btn btn-default btn-flat float-end">Đăng xuất</a>
               </li>
               <!--end::Menu Footer-->
             </ul>
@@ -319,32 +319,62 @@
                 </li>
                 <li class="nav-item">
                   <a href="./widgets/students.html" class="nav-link">
-                    <i class="nav-icon bi bi-circle"></i>
-                    <p>Students</p>
+                    <i class="nav-icon bi bi-person-fill"></i>
+                    <p>Quản Lý Học Sinh</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="./widgets/exam-papers.html" class="nav-link active">
-                    <i class="nav-icon bi bi-circle"></i>
-                    <p>Exam Papers</p>
+                    <i class="nav-icon bi bi-file-earmark-fill"></i>
+                    <p>Quản Lý Đề Thi</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="./widgets/exam-types.html" class="nav-link active">
-                    <i class="nav-icon bi bi-circle"></i>
-                    <p>Exam Types</p>
+                    <i class="nav-icon bi bi-calendar-check-fill"></i>
+                    <p>Quản Lý Loại Kỳ Thi</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="./widgets/exams.html" class="nav-link">
-                    <i class="nav-icon bi bi-circle"></i>
-                    <p>Exams</p>
+                    <i class="nav-icon bi bi-calendar-check-fill"></i>
+                    <p>Quản Lý Kỳ Thi</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="./widgets/exam-rooms.html" class="nav-link">
-                    <i class="nav-icon bi bi-door-open-fill"></i>
+                    <i class="nav-icon bi bi-building-fill"></i>
                     <p>Quản Lý Phòng Thi</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./widgets/roles.html" class="nav-link">
+                    <i class="nav-icon bi bi-person-rolodex"></i>
+                    <p>Quản Lý Vai Trò</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./widgets/users.html" class="nav-link">
+                    <i class="nav-icon bi bi-person-lines-fill"></i>
+                    <p>Quản Lý Người Dùng</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./widgets/permissions.html" class="nav-link">
+                    <i class="nav-icon bi bi-key-fill"></i>
+                    <p>Quản Lý Quyền</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./widgets/role-permissions.html" class="nav-link">
+                    <i class="nav-icon bi bi-person-plus"></i>
+                    <p>Quản Lý Gán Quyền Vai Trò</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="./widgets/user-roles.html" class="nav-link">
+                    <i class="nav-icon bi bi-person-lines-fill"></i>
+                    <p>Quản Lý Gán Vai Trò Người Dùng</p>
                   </a>
                 </li>
               </ul>
@@ -1308,6 +1338,23 @@
 
     const sparkline3 = new ApexCharts(document.querySelector('#sparkline-3'), option_sparkline3);
     sparkline3.render();
+
+    (async function loadCurrentUser() {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (!data || !data.authenticated || !data.username) return;
+
+        const navName = document.getElementById('currentUsernameNav');
+        const headerName = document.getElementById('currentUsernameHeader');
+        if (navName) navName.textContent = data.username;
+        if (headerName) headerName.textContent = data.username;
+      } catch (_e) {
+        // Keep default labels when request fails.
+      }
+    })();
   </script>
   <!--end::Script-->
 </body>

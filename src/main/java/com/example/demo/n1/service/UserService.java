@@ -3,6 +3,7 @@ package com.example.demo.n1.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.n1.model.entity.Role;
@@ -17,23 +18,23 @@ public class UserService {
 
     private final RoleRepository roleRepo;
 
-    // @Autowired
-    // private PasswordEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepo, RoleRepository roleRepo) {
+    public UserService(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User createUser(String username, String password, String email, String phone, String avatarUrl) {
         User u = new User();
         u.setUsername(username);
-        u.setPassword(password);
+        u.setPassword(passwordEncoder.encode(password));
         u.setEmail(email);
         u.setPhone(phone);
         u.setAvatarUrl(avatarUrl);
 
-        return userRepo.save(u);    
+        return userRepo.save(u);
     }
 
 

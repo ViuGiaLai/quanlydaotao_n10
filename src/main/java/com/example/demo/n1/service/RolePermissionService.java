@@ -26,6 +26,10 @@ public class RolePermissionService {
         repository.deleteByRoleIdAndPermissionId(roleId, permissionId);
     }
 
+    public List<RolePermission> findAll() {
+        return repository.findAll();
+    }
+
     public List<RolePermission> getPermissionsByRoleId(UUID roleId) {
         return repository.findByRoleId(roleId);
     }

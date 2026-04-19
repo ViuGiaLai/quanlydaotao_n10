@@ -1,7 +1,9 @@
 package com.example.demo.n1.controller;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,11 @@ public class RoleApiController {
     @PostMapping
     public Role create(@RequestBody Role role) {
         return roleService.createRole(role);
+    }
+
+    @GetMapping
+    public List<Role> list() {
+        return roleService.findAll();
     }
 
     @PostMapping("/{roleId}/permissions/{permId}")

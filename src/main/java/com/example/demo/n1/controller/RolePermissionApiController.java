@@ -26,6 +26,11 @@ public class RolePermissionApiController {
         this.service = service;
     }
 
+    @GetMapping
+    public List<RolePermission> list() {
+        return service.findAll();
+    }
+
     // 1️⃣ Lấy danh sách permission theo role
     @GetMapping("/{roleId}")
     public List<RolePermission> getByRole(@PathVariable UUID roleId) {

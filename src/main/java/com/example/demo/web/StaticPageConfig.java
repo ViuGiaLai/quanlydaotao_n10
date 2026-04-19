@@ -35,8 +35,9 @@ public class StaticPageConfig implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
 
-        // Trang chủ
-        registry.addRedirectViewController("/", "/adminlte/index.html");
+        // Trang chủ → cổng /admin (yêu cầu đăng nhập, xem SecurityConfig)
+        registry.addRedirectViewController("/", "/admin");
+        registry.addRedirectViewController("/admin", "/adminlte/index.html");
 
         // Route đẹp
         registry.addRedirectViewController("/exam-papers", "/adminlte/widgets/exam-papers.html");

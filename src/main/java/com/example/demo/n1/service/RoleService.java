@@ -1,5 +1,6 @@
 package com.example.demo.n1.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +24,10 @@ public class RoleService {
 
     public Role createRole(Role role) {
         return roleRepo.save(role);
+    }
+
+    public List<Role> findAll() {
+        return roleRepo.findAll();
     }
 
     public Role addPermission(UUID roleId, UUID permId) {

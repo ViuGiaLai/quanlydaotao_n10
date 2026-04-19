@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Đăng nhập · Quản lý đào tạo</title>
+    <link rel="preload" href="/css/adminlte.css" as="style" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+      integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/css/adminlte.css" />
+  </head>
+  <body class="login-page bg-body-secondary">
+    <div class="login-box">
+      <div class="card card-outline card-primary">
+        <div class="card-header">
+          <a href="/admin" class="link-dark text-center link-offset-2 link-opacity-100 link-opacity-50-hover">
+            <h1 class="mb-0"><b>Quản lý</b> đào tạo</h1>
+          </a>
+        </div>
+        <div class="card-body login-card-body">
+          <p class="login-box-msg">Đăng nhập để vào khu vực quản trị</p>
+
+          <div th:if="${param.error}" class="alert alert-danger py-2" role="alert">
+            Sai tên đăng nhập / email hoặc mật khẩu.
+          </div>
+          <div th:if="${param.logout}" class="alert alert-success py-2" role="alert">
+            Bạn đã đăng xuất thành công.
+          </div>
+
+          <form th:action="@{/login}" method="post">
+            <div class="input-group mb-2">
+              <div class="form-floating flex-grow-1">
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  class="form-control"
+                  autocomplete="username"
+                  required
+                  autofocus
+                  placeholder=""
+                />
+                <label for="username">Tên đăng nhập hoặc email</label>
+              </div>
+              <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+            </div>
+            <div class="input-group mb-3">
+              <div class="form-floating flex-grow-1">
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  class="form-control"
+                  autocomplete="current-password"
+                  required
+                  placeholder=""
+                />
+                <label for="password">Mật khẩu</label>
+              </div>
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <p class="mb-0 mt-3 text-center text-body-secondary small">
+            Sau khi đăng nhập, hệ thống tạo phiên làm việc (cookie JSESSIONID) và chỉ cho phép truy cập
+            <code>/admin</code> và giao diện AdminLTE.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="/js/adminlte.js"></script>
+  </body>
+</html>
