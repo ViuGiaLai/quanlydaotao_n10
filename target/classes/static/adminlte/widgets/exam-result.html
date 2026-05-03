@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>AdminLTE 4 | Quản Lý Kết Quả Thi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+  <link rel="preload" href="../css/adminlte.css" as="style" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" crossorigin="anonymous" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="../css/adminlte.css" />
+</head>
+<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
+  <div class="app-wrapper">
+    <nav class="app-header navbar navbar-expand bg-body">
+      <div class="container-fluid">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button"><i class="bi bi-list"></i></a>
+          </li>
+          <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Home</a></li>
+          <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+      <div class="sidebar-brand">
+        <a href="../index.html" class="brand-link">
+          <img src="../assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image opacity-75 shadow" />
+          <span class="brand-text fw-light">AdminLTE 4</span>
+        </a>
+      </div>
+      <div class="sidebar-wrapper">
+        <nav class="mt-2">
+          <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="navigation" aria-label="Main navigation" data-accordion="false" id="navigation">
+            <li class="nav-item menu-open">
+              <a href="#" class="nav-link active">
+                <i class="nav-icon bi bi-box-seam-fill"></i>
+                <p>Widgets <i class="nav-arrow bi bi-chevron-right"></i></p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item"><a href="./students.html" class="nav-link"><i class="nav-icon bi bi-person-fill"></i><p>Quản Lý Học Sinh</p></a></li>
+                <li class="nav-item"><a href="./exam-papers.html" class="nav-link"><i class="nav-icon bi bi-file-earmark-fill"></i><p>Quản Lý Đề Thi</p></a></li>
+                <li class="nav-item"><a href="./exam-types.html" class="nav-link"><i class="nav-icon bi bi-calendar-check-fill"></i><p>Quản Lý Loại Kỳ Thi</p></a></li>
+                <li class="nav-item"><a href="./exams.html" class="nav-link"><i class="nav-icon bi bi-calendar-check-fill"></i><p>Quản Lý Kỳ Thi</p></a></li>
+                <li class="nav-item"><a href="./exam-rooms.html" class="nav-link"><i class="nav-icon bi bi-building-fill"></i><p>Quản Lý Phòng Thi</p></a></li>
+                <li class="nav-item"><a href="./exam-registration.html" class="nav-link"><i class="nav-icon bi bi-journal-check"></i><p>Quản Lý Danh Sách Thí Sinh</p></a></li>
+                <li class="nav-item"><a href="./exam-result.html" class="nav-link active"><i class="nav-icon bi bi-award-fill"></i><p>Quản Lý Kết Quả Thi</p></a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="app-content-header">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-sm-6"><h3 class="mb-0">Quản Lý Kết Quả Thi</h3></div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Quản Lý Kết Quả Thi</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-content">
+        <div class="container-fluid">
+          <div class="row mb-3">
+            <div class="col-12 text-end">
+              <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="bi bi-plus-lg"></i> Thêm Kết Quả
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Danh Sách Kết Quả Thi</h3>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th>Registration ID</th>
+                          <th>Điểm</th>
+                          <th>Trạng thái</th>
+                          <th>Khóa</th>
+                          <th>Hoạt động</th>
+                          <th>Chấm lúc</th>
+                          <th style="width: 120px">Hành động</th>
+                        </tr>
+                      </thead>
+                      <tbody id="examResultTable"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div class="float-end d-none d-sm-inline">Anything you want</div>
+      <strong>Copyright &copy; 2014-2025 <a href="https://adminlte.io" class="text-decoration-none">AdminLTE.io</a>.</strong>
+      All rights reserved.
+    </footer>
+  </div>
+
+  <div class="modal fade" id="examResultModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">Thêm Kết Quả Thi</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="examResultForm">
+            <input type="hidden" id="resultId" />
+            <div class="mb-3">
+              <label for="registrationId" class="form-label">Registration ID</label>
+              <input type="text" class="form-control" id="registrationId" required />
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="score" class="form-label">Điểm</label>
+                <input type="number" class="form-control" id="score" step="0.01" min="0" max="10" required />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="status" class="form-label">Trạng thái</label>
+                <input type="text" class="form-control" id="status" placeholder="Đạt / Trượt / Chờ duyệt" required />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="gradedAt" class="form-label">Thời điểm chấm</label>
+                <input type="datetime-local" class="form-control" id="gradedAt" />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="gradedBy" class="form-label">gradedBy (datetime theo model hiện tại)</label>
+                <input type="datetime-local" class="form-control" id="gradedBy" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <div class="form-check mt-2">
+                  <input class="form-check-input" type="checkbox" id="isLocked" />
+                  <label class="form-check-label" for="isLocked">Đã khóa</label>
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <div class="form-check mt-2">
+                  <input class="form-check-input" type="checkbox" id="isActive" checked />
+                  <label class="form-check-label" for="isActive">Kích hoạt</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" onclick="saveExamResult()">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+  <script src="../js/adminlte.js"></script>
+
+  <script>
+    const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
+    const API_URL = '/api/exam-results';
+    const resultCache = {};
+
+    function toDateTimeLocal(value) {
+      if (!value) return '';
+      return value.length >= 16 ? value.slice(0, 16) : value;
+    }
+
+    function toIsoDateTime(value) {
+      if (!value) return null;
+      return `${value}:00`;
+    }
+
+    function setDefaultDateTimes() {
+      const now = new Date();
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('gradedAt').value = local;
+      document.getElementById('gradedBy').value = local;
+    }
+
+    async function loadExamResults() {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error(`Không tải được dữ liệu (${res.status})`);
+        const data = await res.json();
+        const rows = (Array.isArray(data) ? data : []).map(r => {
+          if (r.id) resultCache[r.id] = r;
+          return `
+          <tr>
+            <td><small>${r.registrationId || ''}</small></td>
+            <td>${r.score ?? ''}</td>
+            <td>${r.status || ''}</td>
+            <td><span class="badge ${r.isLocked ? 'text-bg-warning' : 'text-bg-secondary'}">${r.isLocked ? 'Đã khóa' : 'Mở'}</span></td>
+            <td><span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">${r.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
+            <td>${r.gradedAt || '-'}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editExamResultById('${r.id}')"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="deleteExamResult('${r.id}')"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        `;
+        }).join('');
+
+        document.getElementById('examResultTable').innerHTML = rows || '<tr><td colspan="7" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+      } catch (e) {
+        document.getElementById('examResultTable').innerHTML = `<tr><td colspan="7" class="text-center text-danger">${e.message}</td></tr>`;
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').innerText = 'Thêm Kết Quả Thi';
+      document.getElementById('resultId').value = '';
+      document.getElementById('examResultForm').reset();
+      document.getElementById('isActive').checked = true;
+      setDefaultDateTimes();
+      new bootstrap.Modal(document.getElementById('examResultModal')).show();
+    }
+
+    function editExamResultById(id) {
+      const r = resultCache[id];
+      if (!r) return;
+      document.getElementById('modalTitle').innerText = 'Cập Nhật Kết Quả Thi';
+      document.getElementById('resultId').value = r.id || '';
+      document.getElementById('registrationId').value = r.registrationId || '';
+      document.getElementById('score').value = r.score ?? '';
+      document.getElementById('status').value = r.status || '';
+      document.getElementById('gradedAt').value = toDateTimeLocal(r.gradedAt);
+      document.getElementById('gradedBy').value = toDateTimeLocal(r.gradedBy);
+      document.getElementById('isLocked').checked = !!r.isLocked;
+      document.getElementById('isActive').checked = r.isActive !== false;
+      new bootstrap.Modal(document.getElementById('examResultModal')).show();
+    }
+
+    async function saveExamResult() {
+      const id = document.getElementById('resultId').value;
+      const payload = {
+        registrationId: document.getElementById('registrationId').value,
+        score: Number(document.getElementById('score').value),
+        status: document.getElementById('status').value,
+        gradedAt: toIsoDateTime(document.getElementById('gradedAt').value),
+        gradedBy: toIsoDateTime(document.getElementById('gradedBy').value),
+        isLocked: document.getElementById('isLocked').checked,
+        isActive: document.getElementById('isActive').checked,
+        createdAt: toIsoDateTime(document.getElementById('gradedAt').value),
+        updatedAt: toIsoDateTime(document.getElementById('gradedAt').value)
+      };
+
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(err || `Lưu thất bại (${res.status})`);
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('examResultModal')).hide();
+        loadExamResults();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function deleteExamResult(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa kết quả này không?')) return;
+      try {
+        const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`Xóa thất bại (${res.status})`);
+        loadExamResults();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+      if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined) {
+        OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+          scrollbars: { theme: 'os-theme-light', autoHide: 'leave', clickScroll: true }
+        });
+      }
+      loadExamResults();
+    });
+  </script>
+</body>
+</html>
