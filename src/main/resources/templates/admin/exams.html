@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Exams</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exams'"></th:block>
+        
+            <div class="app-content">
+                <!--begin::Container-->
+                <div class="container-fluid">
+                    <!-- START: Added Content -->
+                    <div class="row mb-3">
+                        <div class="col-12 text-end">
+                            <button class="btn btn-primary" onclick="openExamModal()">
+                                <i class="bi bi-plus-lg"></i> Thêm Lịch Thi
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Danh Sách Lịch Thi</h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ngày thi</th>
+                                                    <th>Giờ bắt đầu</th>
+                                                    <th>Thời lượng</th>
+                                                    <th>Kết thúc</th>
+                                                    <th>Hình thức</th>
+                                                    <th>Trạng thái</th>
+                                                    <th style="width: 100px">Hành động</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="examTableBody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END: Added Content -->
+                </div>
+                <!--end::Container-->
+            </div>
+            
+    </div>
+</body>
+</html>

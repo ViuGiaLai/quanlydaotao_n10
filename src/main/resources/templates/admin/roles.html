@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Roles</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='roles'"></th:block>
+        
+            <div class="app-content">
+                <!--begin::Container-->
+                <div class="container-fluid">
+                    <div class="row mb-3">
+                          <div class="col-12 text-end">
+                              <button class="btn btn-primary" onclick="openAddModal()">
+                                  <i class="bi bi-shield-plus"></i> Thêm Vai Trò
+                              </button>
+                          </div>
+                      </div>
+                      <div class="row">
+                          <div class="col-12">
+                              <div class="card">
+                                  <div class="card-header">
+                                      <h3 class="card-title">Danh Sách Vai Trò</h3>
+                                  </div>
+                                  <div class="card-body p-0">
+                                      <div class="table-responsive">
+                                          <table class="table table-striped align-middle">
+                                              <thead>
+                                                  <tr>
+                                                      <th>Mã Vai Trò</th>
+                                                      <th>Tên Vai Trò</th>
+                                                      <th>Mô Tả</th>
+                                                      <th>Hệ Thống</th>
+                                                      <th>Hành Động</th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody id="roleTable"></tbody>
+                                          </table>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                    </div>
+                </div>
+                <!--end::Container-->
+            </div>
+            
+    </div>
+</body>
+</html>

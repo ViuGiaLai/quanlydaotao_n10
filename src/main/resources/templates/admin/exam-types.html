@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Exam Types</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exam-types'"></th:block>
+        
+            <div class="app-content">
+                <!--begin::Container-->
+                <div class="container-fluid">
+                    <!-- START: Added Content -->
+                    <div class="row mb-3">
+                        <div class="col-12 text-end">
+                            <button class="btn btn-primary" onclick="openAddModal()">
+                                <i class="bi bi-plus-lg"></i> Thêm Loại Kỳ Thi
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Danh Sách Loại Kỳ Thi</h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tên Loại Kỳ Thi</th>
+                                                    <th>Mô Tả</th>
+                                                    <th>Trạng Thái</th>
+                                                    <th>Hành Động</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="examTypeTable">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END: Added Content -->
+                </div>
+                <!--end::Container-->
+            </div>
+            
+    </div>
+</body>
+</html>

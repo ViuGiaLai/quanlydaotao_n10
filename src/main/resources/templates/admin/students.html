@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Students</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='students'"></th:block>
+        
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <h3>Danh sách sinh viên</h3>
+
+                <button class="btn btn-primary mb-3" onclick="openAddModal()">
+                    <i class="fa fa-plus"></i> Thêm sinh viên
+                </button>
+
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>Code</th>
+                        <th>Họ tên</th>
+                        <th>Giới tính</th>
+                        <th>Ngày sinh</th>
+                        <th>Địa chỉ</th>
+                        <th>Trạng thái</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="studentTable"></tbody>
+                </table>
+          </div>
+          <!--end::Container-->
+        </div>
+        
+    </div>
+</body>
+</html>

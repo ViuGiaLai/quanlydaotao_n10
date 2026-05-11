@@ -37,11 +37,21 @@ public class StaticPageConfig implements WebMvcConfigurer {
 
         // Trang chủ → cổng /admin (yêu cầu đăng nhập, xem SecurityConfig)
         registry.addRedirectViewController("/", "/admin");
-        registry.addRedirectViewController("/admin", "/adminlte/index.html");
+        registry.addRedirectViewController("/admin", "/admin/exams");
 
-        // Route đẹp
-        registry.addRedirectViewController("/exam-papers", "/adminlte/widgets/exam-papers.html");
-        registry.addRedirectViewController("/exam-types", "/adminlte/widgets/exam-types.html");
-        registry.addRedirectViewController("/students", "/adminlte/widgets/students.html");
+        // Giữ tương thích URL cũ (AdminLTE static đã được thay bằng Thymeleaf templates)
+        registry.addRedirectViewController("/adminlte/index.html", "/admin/exams");
+
+        // Admin pages (Thymeleaf views dưới src/main/resources/templates/admin/)
+        registry.addViewController("/admin/exams").setViewName("admin/exams");
+        registry.addViewController("/admin/exam-papers").setViewName("admin/exam-papers");
+        registry.addViewController("/admin/exam-types").setViewName("admin/exam-types");
+        registry.addViewController("/admin/exam-rooms").setViewName("admin/exam-rooms");
+        registry.addViewController("/admin/students").setViewName("admin/students");
+        registry.addViewController("/admin/roles").setViewName("admin/roles");
+        registry.addViewController("/admin/users").setViewName("admin/users");
+        registry.addViewController("/admin/permissions").setViewName("admin/permissions");
+        registry.addViewController("/admin/role-permissions").setViewName("admin/role-permissions");
+        registry.addViewController("/admin/user-roles").setViewName("admin/user-roles");
     }
 }
