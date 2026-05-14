@@ -35,6 +35,28 @@ public class TeacherService {
         return teacherRepository.save(teacher);
     }
 
+    public Teacher create(Teacher teacher) {
+        return teacherRepository.save(teacher);
+    }
+
+    public Teacher update(UUID id, Teacher teacher) {
+        return findById(id).map(existing -> {
+            existing.setCode(teacher.getCode());
+            existing.setFullname(teacher.getFullname());
+            existing.setDateOfBirth(teacher.getDateOfBirth());
+            existing.setGender(teacher.getGender());
+            existing.setEmail(teacher.getEmail());
+            existing.setPhone(teacher.getPhone());
+            existing.setDepartmentId(teacher.getDepartmentId());
+            existing.setAcademicTitle(teacher.getAcademicTitle());
+            existing.setDegree(teacher.getDegree());
+            existing.setSpecialization(teacher.getSpecialization());
+            existing.setStatus(teacher.getStatus());
+            existing.setIsActive(teacher.getIsActive());
+            return teacherRepository.save(existing);
+        }).orElse(null);
+    }
+
     public void deleteById(UUID id) {
         teacherRepository.deleteById(id);
     }

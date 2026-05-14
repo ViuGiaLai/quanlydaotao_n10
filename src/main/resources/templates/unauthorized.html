@@ -66,9 +66,12 @@
             Tài khoản của bạn chưa được cấp quyền truy cập hệ thống.<br>
             Vui lòng liên hệ quản trị viên để được cấp quyền.
         </div>
-        <a th:href="@{/logout}" class="btn-logout">
-            <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
-        </a>
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <button type="submit" class="btn-logout">
+                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+            </button>
+        </form>
     </div>
 </body>
 </html>

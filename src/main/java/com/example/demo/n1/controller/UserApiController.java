@@ -50,4 +50,18 @@ public class UserApiController {
     public List<User> listAll() {
         return userService.findAll();
     }
+
+    @PostMapping("/{id}")
+    public User update(@PathVariable UUID id, @RequestParam String username,
+                   @RequestParam String password,
+                   @RequestParam String email,
+                   @RequestParam String phone,
+                   @RequestParam String avatarUrl) {
+        return userService.updateUser(id, username, password, email, phone, avatarUrl);
+    }
+
+    @PostMapping("/{id}/delete")
+    public void delete(@PathVariable UUID id) {
+        userService.deleteUser(id);
+    }
 }

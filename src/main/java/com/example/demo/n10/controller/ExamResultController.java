@@ -11,6 +11,7 @@ import com.example.demo.n10.service.ExamResultService;
 
 @RestController
 @RequestMapping("/api/exam-results")
+@CrossOrigin("*")
 public class ExamResultController {
     
     private final ExamResultService examResultService;
@@ -20,8 +21,12 @@ public class ExamResultController {
     }
 
     @GetMapping
-    public List<ExamResult> getAllExamResults() {
-        return examResultService.findAll();
+    public List<ExamResult> getExamResults(
+            @RequestParam(required = false) UUID courseClassId,
+            @RequestParam(required = false) UUID subjectId,
+            @RequestParam(required = false) Boolean isEditable,
+            @RequestParam(required = false) String search) {
+        return examResultService.findByFilters(courseClassId, subjectId, isEditable, search);
     }
 
     @GetMapping("/list")
@@ -63,5 +68,52 @@ public class ExamResultController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    // Toggle editable - Admin mở/khóa nhập điểm
+    @PostMapping("/{id}/toggle-edit")
+    public ResponseEntity<ExamResult> toggleEditable(@PathVariable UUID id, @RequestBody ToggleEditRequest request) {
+        return examResultService.findById(id)
+                .map(existing -> {
+                    existing.setIsEditable(request.isEditable());
+                    return ResponseEntity.ok(examResultService.save(existing));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Admin special edit - chỉnh sửa đặc biệt
+    @PostMapping("/{id}/admin-edit")
+    public ResponseEntity<ExamResult> adminEdit(@PathVariable UUID id, @RequestBody AdminEditRequest request) {
+        return examResultService.findById(id)
+                .map(existing -> {
+                    if (request.attendanceScore() != null) existing.setAttendanceScore(request.attendanceScore());
+                    if (request.testScore() != null) existing.setTestScore(request.testScore());
+                    if (request.midtermScore() != null) existing.setMidtermScore(request.midtermScore());
+                    if (request.finalScore() != null) existing.setFinalScore(request.finalScore());
+                    return ResponseEntity.ok(examResultService.save(existing));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Export
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportResults(
+            @RequestParam(required = false) UUID courseClassId,
+            @RequestParam(required = false) UUID subjectId,
+            @RequestParam(defaultValue = "excel") String format) {
+        List<ExamResult> results = examResultService.findByFilters(courseClassId, subjectId, null, null);
+        // TODO: Implement export to Excel/PDF
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=diem." + format)
+                .body(new byte[0]);
+    }
+
+    // Request records
+    public record ToggleEditRequest(Boolean isEditable) {}
+    public record AdminEditRequest(
+            Double attendanceScore,
+            Double testScore,
+            Double midtermScore,
+            Double finalScore,
+            String adminNote) {}
 
 }

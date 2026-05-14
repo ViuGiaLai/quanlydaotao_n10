@@ -1,306 +1,379 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
 <head>
-    <title>Quản Lý Lịch Thi</title>
+    <title>Exams</title>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1060;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 95vh;
+            overflow: auto;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+    </style>
 </head>
+
 <body>
-    <div th:replace="~{admin/layout :: sidebar}"></div>
-    
-    <div th:replace="~{admin/layout :: modal-container}"></div>
-    
-    <div th:replace="~{admin/layout :: main-content}">
-        <div th:fragment="page-content" class="container-fluid">
-            <div class="row mb-3">
-                <div class="col-12 text-end">
-                    <button class="btn btn-primary" onclick="openExamModal()">
-                        <i class="bi bi-plus-lg"></i> Thêm Lịch Thi
-                    </button>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exams'"></th:block>
+
+        <div class="app-content">
+            <div class="container-fluid">
+                <div class="row mb-3">
+                    <div class="col-12 text-end">
+                        <button class="btn btn-primary" onclick="openExamModal()">
+                            <i class="bi bi-plus-lg"></i> Thêm Lịch Thi
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Danh Sách Lịch Thi</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Loại Kỳ Thi</th>
+                                                <th>Lớp Học Phần</th>
+                                                <th>Học Kỳ</th>
+                                                <th>Ngày thi</th>
+                                                <th>Giờ bắt đầu</th>
+                                                <th>Thời lượng</th>
+                                                <th>Kết thúc</th>
+                                                <th>Hình thức</th>
+                                                <th>Trạng thái</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="examTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="p-3 border-top" id="examPagination"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Danh Sách Lịch Thi</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Loại Kỳ Thi</th>
-                                            <th>Lớp Học Phần</th>
-                                            <th>Học Kỳ</th>
-                                            <th>Ngày thi</th>
-                                            <th>Giờ bắt đầu</th>
-                                            <th>Thời lượng</th>
-                                            <th>Kết thúc</th>
-                                            <th>Hình thức</th>
-                                            <th>Trạng thái</th>
-                                            <th>Hành động</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="examTableBody"></tbody>
-                                </table>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="examModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm Lịch Thi</h5>
+                        <button type="button" class="btn-close" onclick="closeExamModal()" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="examForm">
+                            <input type="hidden" id="examId">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="examTypeId" class="form-label">Loại Kỳ Thi</label>
+                                    <select class="form-select" id="examTypeId" required></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="courseClassId" class="form-label">Lớp Học Phần</label>
+                                    <select class="form-select" id="courseClassId" required></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="semesterId" class="form-label">Học Kỳ</label>
+                                    <select class="form-select" id="semesterId" required></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="examDate" class="form-label">Ngày Thi</label>
+                                    <input type="date" class="form-control" id="examDate" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="startTime" class="form-label">Giờ Bắt Đầu</label>
+                                    <input type="time" class="form-control" id="startTime" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="durationMinutes" class="form-label">Thời Lượng (phút)</label>
+                                    <input type="number" class="form-control" id="durationMinutes" min="1">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="examFormat" class="form-label">Hình Thức Thi</label>
+                                    <input type="text" class="form-control" id="examFormat">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="examStatus" class="form-label">Trạng Thái Thi</label>
+                                    <input type="text" class="form-control" id="examStatus">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="supervisorCount" class="form-label">Số Giám Thị</label>
+                                    <input type="number" class="form-control" id="supervisorCount" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3 d-flex align-items-end">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                        <label class="form-check-label" for="isActive">Kích hoạt</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="p-3 border-top" id="examPagination"></div>
-                        </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeExamModal()">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="saveExam()">Lưu</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="examModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Thêm Lịch Thi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="examForm">
-                        <input type="hidden" id="examId">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Loại Kỳ Thi</label>
-                                <select class="form-select" id="examTypeId" required></select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Lớp Học Phần</label>
-                                <select class="form-select" id="courseClassId" required></select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Học Kỳ</label>
-                                <select class="form-select" id="semesterId" required></select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ngày Thi</label>
-                                <input type="date" class="form-control" id="examDate" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Giờ Bắt Đầu</label>
-                                <input type="time" class="form-control" id="startTime" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Thời Lượng (phút)</label>
-                                <input type="number" class="form-control" id="durationMinutes" min="1">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Hình Thức Thi</label>
-                                <input type="text" class="form-control" id="examFormat">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Trạng Thái Thi</label>
-                                <input type="text" class="form-control" id="examStatus">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Số Giám Thị</label>
-                                <input type="number" class="form-control" id="supervisorCount" min="0">
-                            </div>
-                            <div class="col-md-6 mb-3 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="isActive" checked>
-                                    <label class="form-check-label">Kích hoạt</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveExam()">Lưu</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <th:block layout:fragment="script">
+        <script>
+            const EXAM_TYPE_API = "/api/exam-types/list";
+            const COURSE_CLASS_API = "/api/course-classes/list";
+            const SEMESTER_API = "/api/semesters/list";
+            const API_URL = "/api/exams";
+            const EXAM_PAGE_SIZE = 10;
 
-    <!-- Page Scripts -->
-    <script>
-    const EXAM_TYPE_API = "/api/exam-types/list";
-    const COURSE_CLASS_API = "/api/course-classes/list";
-    const SEMESTER_API = "/api/semesters/list";
-    const API_URL = "/api/exams";
-    const EXAM_PAGE_SIZE = 10;
-    let examTypeList = [];
-    let courseClassList = [];
-    let semesterList = [];
-    let examItems = [];
-    let examCurrentPage = 1;
+            let examTypeList = [], courseClassList = [], semesterList = [];
+            let examItems = [];
+            let examCurrentPage = 1;
 
-    const AdminPagination = {
-        paginate: function(items, page, pageSize) {
-            const start = (page - 1) * pageSize;
-            return items.slice(start, start + pageSize);
-        },
-        render: function(elementId, totalItems, currentPage, pageSize, callback) {
-            const totalPages = Math.ceil(totalItems / pageSize);
-            if (totalPages <= 1) return;
-            let html = '<nav><ul class="pagination mb-0">';
-            for (let i = 1; i <= totalPages; i++) {
-                html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">';
-                html += '<a class="page-link" href="#">' + i + '</a></li>';
+            async function loadLookupData() {
+                try {
+                    const [types, classes, semesters] = await Promise.all([
+                        fetch(EXAM_TYPE_API).then(r => r.json()),
+                        fetch(COURSE_CLASS_API).then(r => r.json()),
+                        fetch(SEMESTER_API).then(r => r.json())
+                    ]);
+                    examTypeList = types || [];
+                    courseClassList = classes || [];
+                    semesterList = semesters || [];
+                    populateSelects();
+                } catch (e) { console.error(e); }
             }
-            html += '</ul></nav>';
-            const container = document.getElementById(elementId);
-            if (container) {
-                container.innerHTML = html;
-                container.querySelectorAll('.page-link').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        callback(parseInt(e.target.textContent));
-                    });
+
+            function populateSelects() {
+                const ts = document.getElementById("examTypeId");
+                const cs = document.getElementById("courseClassId");
+                const ss = document.getElementById("semesterId");
+
+                ts.innerHTML = '<option value="">-- Chọn Loại Kỳ Thi --</option>';
+                examTypeList.forEach(t => ts.innerHTML += `<option value="${t.id}">${t.typeName || t.name}</option>`);
+
+                cs.innerHTML = '<option value="">-- Chọn Lớp Học Phần --</option>';
+                courseClassList.forEach(c => cs.innerHTML += `<option value="${c.id}">${c.className || c.name}</option>`);
+
+                ss.innerHTML = '<option value="">-- Chọn Học Kỳ --</option>';
+                semesterList.forEach(s => ss.innerHTML += `<option value="${s.id}">${s.semesterName || s.name}</option>`);
+            }
+
+            function getLookupName(list, id) {
+                if (!id) return "";
+                const item = list.find(x => String(x.id) === String(id));
+                return item ? (item.name || item.typeName || item.className || item.semesterName || id) : id;
+            }
+
+            async function loadExams() {
+                try {
+                    const res = await fetch(API_URL);
+                    if (!res.ok) throw new Error("API error");
+                    examItems = await res.json();
+                    examCurrentPage = 1;
+                    if (!examTypeList.length) await loadLookupData();
+                    renderExamTable();
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById("examTableBody").innerHTML = 
+                        `<tr><td colspan="10" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>`;
+                }
+            }
+
+            function renderExamTable() {
+                const pageItems = AdminPagination.paginate(examItems, examCurrentPage, EXAM_PAGE_SIZE);
+                let html = "";
+
+                pageItems.forEach(e => {
+                    let endTime = e.endTime || '-';
+                    if (e.startTime && e.durationMinutes) {
+                        try {
+                            let start = new Date(`2000-01-01T${e.startTime}`);
+                            let end = new Date(start.getTime() + e.durationMinutes * 60000);
+                            endTime = end.toTimeString().slice(0, 5);
+                        } catch (err) {}
+                    }
+
+                    html += `
+                    <tr>
+                        <td><small>${getLookupName(examTypeList, e.examTypeId)}</small></td>
+                        <td><small>${getLookupName(courseClassList, e.courseClassId)}</small></td>
+                        <td><small>${getLookupName(semesterList, e.semesterId)}</small></td>
+                        <td>${e.examDate || ''}</td>
+                        <td>${e.startTime || ''}</td>
+                        <td>${e.durationMinutes || 0} phút</td>
+                        <td>${endTime}</td>
+                        <td>${e.examFormat || ''}</td>
+                        <td><span class="badge ${e.isActive ? 'text-bg-success' : 'text-bg-danger'}">${e.examStatus || (e.isActive ? 'Hoạt động' : 'Vô hiệu')}</span></td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" onclick="editExamById('${e.id}')">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteExam('${e.id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
                 });
+
+                document.getElementById("examTableBody").innerHTML = html || 
+                    `<tr><td colspan="10" class="text-center">Không có dữ liệu</td></tr>`;
+
+                if (typeof AdminPagination !== 'undefined') {
+                    AdminPagination.render("examPagination", examItems.length, examCurrentPage, EXAM_PAGE_SIZE, (p) => {
+                        examCurrentPage = p;
+                        renderExamTable();
+                    });
+                }
             }
-        }
-    };
 
-    async function loadLookupData() {
-        try {
-            const [types, classes, semesters] = await Promise.all([
-                fetch(EXAM_TYPE_API).then(r => r.json()),
-                fetch(COURSE_CLASS_API).then(r => r.json()),
-                fetch(SEMESTER_API).then(r => r.json())
-            ]);
-            examTypeList = types || [];
-            courseClassList = classes || [];
-            semesterList = semesters || [];
-            populateSelects();
-        } catch (e) { console.error("Load lookup error:", e); }
-    }
-
-    function populateSelects() {
-        const examTypeSel = document.getElementById("examTypeId");
-        const courseClassSel = document.getElementById("courseClassId");
-        const semesterSel = document.getElementById("semesterId");
-        if (examTypeSel) {
-            examTypeSel.innerHTML = '<option value="">-- Chọn Loại Kỳ Thi --</option>';
-            examTypeList.forEach(t => { examTypeSel.innerHTML += '<option value="' + t.id + '">' + (t.typeName || t.name || t.id) + '</option>'; });
-        }
-        if (courseClassSel) {
-            courseClassSel.innerHTML = '<option value="">-- Chọn Lớp Học Phần --</option>';
-            courseClassList.forEach(c => { courseClassSel.innerHTML += '<option value="' + c.id + '">' + (c.className || c.name || c.id) + '</option>'; });
-        }
-        if (semesterSel) {
-            semesterSel.innerHTML = '<option value="">-- Chọn Học Kỳ --</option>';
-            semesterList.forEach(s => { semesterSel.innerHTML += '<option value="' + s.id + '">' + (s.semesterName || s.name || s.id) + '</option>'; });
-        }
-    }
-
-    function getLookupName(list, id) {
-        if (!id) return "";
-        if (!Array.isArray(list) || list.length === 0) return String(id).substring(0, 8);
-        const item = list.find(x => String(x.id) === String(id));
-        return item ? (item.name || item.typeName || item.className || item.semesterName || String(id).substring(0, 8)) : String(id).substring(0, 8);
-    }
-
-    async function loadExams() {
-        try {
-            const res = await fetch(API_URL);
-            if (!res.ok) throw new Error("API error: " + res.status);
-            const data = await res.json();
-            if (!Array.isArray(data)) { console.error("Data is not array:", data); return; }
-            examItems = data;
-            examCurrentPage = 1;
-            if (examTypeList.length === 0) await loadLookupData();
-            renderExamTable();
-        } catch (e) {
-            console.error("Load error:", e.message);
-            document.getElementById("examTableBody").innerHTML = '<tr><td colspan="10" class="text-center text-danger">' + e.message + '</td></tr>';
-        }
-    }
-
-    function renderExamTable() {
-        const pageItems = AdminPagination.paginate(examItems, examCurrentPage, EXAM_PAGE_SIZE);
-        let html = "";
-        pageItems.forEach(e => {
-            html += '<tr>';
-            html += '<td><small>' + getLookupName(examTypeList, e.examTypeId) + '</small></td>';
-            html += '<td><small>' + getLookupName(courseClassList, e.courseClassId) + '</small></td>';
-            html += '<td><small>' + getLookupName(semesterList, e.semesterId) + '</small></td>';
-            html += '<td>' + (e.examDate || '') + '</td>';
-            html += '<td>' + (e.startTime || '') + '</td>';
-            html += '<td>' + (e.durationMinutes || 0) + ' phút</td>';
-            html += '<td>' + (e.endTime || '-') + '</td>';
-            html += '<td>' + (e.examFormat || '') + '</td>';
-            html += '<td><span class="badge ' + (e.isActive ? 'bg-success' : 'bg-danger') + '">' + (e.examStatus || (e.isActive ? 'Hoạt động' : 'Vô hiệu')) + '</span></td>';
-            html += '<td>';
-            html += '<button class="btn btn-warning btn-sm" onclick=\'editExam(' + JSON.stringify(e) + ')\'><i class="bi bi-pencil-square"></i></button>';
-            html += '<button class="btn btn-danger btn-sm" onclick="deleteExam(\'' + e.id + '\')"><i class="bi bi-trash"></i></button>';
-            html += '</td></tr>';
-        });
-        document.getElementById("examTableBody").innerHTML = html;
-        AdminPagination.render("examPagination", examItems.length, examCurrentPage, EXAM_PAGE_SIZE, function(nextPage) {
-            examCurrentPage = nextPage;
-            renderExamTable();
-        });
-    }
-
-    function openExamModal() {
-        document.getElementById("modalTitle").innerText = "Thêm Lịch Thi";
-        document.getElementById("examId").value = "";
-        document.getElementById("examForm").reset();
-        document.getElementById("isActive").checked = true;
-        new bootstrap.Modal(document.getElementById("examModal")).show();
-    }
-
-    function editExam(e) {
-        document.getElementById("modalTitle").innerText = "Chỉnh Sửa Lịch Thi";
-        document.getElementById("examId").value = e.id;
-        document.getElementById("examTypeId").value = e.examTypeId;
-        document.getElementById("courseClassId").value = e.courseClassId;
-        document.getElementById("semesterId").value = e.semesterId;
-        document.getElementById("examDate").value = e.examDate;
-        document.getElementById("startTime").value = e.startTime;
-        document.getElementById("durationMinutes").value = e.durationMinutes;
-        document.getElementById("examFormat").value = e.examFormat;
-        document.getElementById("examStatus").value = e.examStatus;
-        document.getElementById("supervisorCount").value = e.supervisorCount ?? "";
-        document.getElementById("isActive").checked = e.isActive;
-        new bootstrap.Modal(document.getElementById("examModal")).show();
-    }
-
-    async function saveExam() {
-        const id = document.getElementById("examId").value;
-        const examData = {
-            examTypeId: document.getElementById("examTypeId").value,
-            courseClassId: document.getElementById("courseClassId").value,
-            semesterId: document.getElementById("semesterId").value,
-            examDate: document.getElementById("examDate").value,
-            startTime: document.getElementById("startTime").value,
-            durationMinutes: document.getElementById("durationMinutes").value,
-            examFormat: document.getElementById("examFormat").value,
-            examStatus: document.getElementById("examStatus").value,
-            supervisorCount: document.getElementById("supervisorCount").value || null,
-            isActive: document.getElementById("isActive").checked
-        };
-        const method = id ? "PUT" : "POST";
-        const url = id ? API_URL + "/" + id : API_URL;
-        try {
-            const res = await fetch(url, { method: method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(examData) });
-            if (res.ok) {
-                bootstrap.Modal.getInstance(document.getElementById("examModal")).hide();
-                loadExams();
-            } else {
-                alert("Có lỗi xảy ra khi lưu!");
+            function showModal() {
+                const modal = document.getElementById('examModal');
+                if (modal) {
+                    modal.classList.add('show');
+                    document.body.classList.add('modal-open');
+                }
             }
-        } catch (e) { console.error("Lỗi:", e); }
-    }
 
-    async function deleteExam(id) {
-        if (!confirm("Bạn có chắc chắn muốn xóa lịch thi này không?")) return;
-        try {
-            const res = await fetch(API_URL + "/" + id, { method: "DELETE" });
-            if (res.ok) { alert("Xóa thành công!"); loadExams(); }
-            else { alert("Lỗi khi xóa: " + res.status); }
-        } catch (error) { console.error("Lỗi:", error); }
-    }
+            function closeExamModal() {
+                const modal = document.getElementById('examModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    document.body.classList.remove('modal-open');
+                }
+            }
 
-    document.addEventListener('DOMContentLoaded', async function() {
-        await loadLookupData();
-        await loadExams();
-    });
-    </script>
+            function openExamModal() {
+                document.getElementById("modalTitle").innerText = "Thêm Lịch Thi";
+                document.getElementById("examId").value = "";
+                document.getElementById("examForm").reset();
+                document.getElementById("isActive").checked = true;
+                showModal();
+            }
+
+            function editExamById(id) {
+                const exam = examItems.find(e => String(e.id) === String(id));
+                if (!exam) return;
+
+                document.getElementById("modalTitle").innerText = "Chỉnh Sửa Lịch Thi";
+                document.getElementById("examId").value = exam.id || "";
+                document.getElementById("examTypeId").value = exam.examTypeId || "";
+                document.getElementById("courseClassId").value = exam.courseClassId || "";
+                document.getElementById("semesterId").value = exam.semesterId || "";
+                document.getElementById("examDate").value = exam.examDate || "";
+                document.getElementById("startTime").value = exam.startTime || "";
+                document.getElementById("durationMinutes").value = exam.durationMinutes || "";
+                document.getElementById("examFormat").value = exam.examFormat || "";
+                document.getElementById("examStatus").value = exam.examStatus || "";
+                document.getElementById("supervisorCount").value = exam.supervisorCount ?? "";
+                document.getElementById("isActive").checked = !!exam.isActive;
+
+                showModal();
+            }
+
+            async function saveExam() {
+                const id = document.getElementById("examId").value;
+                const examData = {
+                    examTypeId: document.getElementById("examTypeId").value,
+                    courseClassId: document.getElementById("courseClassId").value,
+                    semesterId: document.getElementById("semesterId").value,
+                    examDate: document.getElementById("examDate").value,
+                    startTime: document.getElementById("startTime").value,
+                    durationMinutes: parseInt(document.getElementById("durationMinutes").value) || 0,
+                    examFormat: document.getElementById("examFormat").value,
+                    examStatus: document.getElementById("examStatus").value,
+                    supervisorCount: document.getElementById("supervisorCount").value ? parseInt(document.getElementById("supervisorCount").value) : null,
+                    isActive: document.getElementById("isActive").checked
+                };
+
+                const method = id ? "PUT" : "POST";
+                const url = id ? `${API_URL}/${id}` : API_URL;
+
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(examData)
+                    });
+
+                    if (!res.ok) throw new Error("Lưu thất bại");
+
+                    closeExamModal();
+                    loadExams();
+                } catch (error) {
+                    console.error(error);
+                    alert("Lưu thất bại: " + error.message);
+                }
+            }
+
+            async function deleteExam(id) {
+                if (!confirm("Bạn có chắc chắn muốn xóa lịch thi này không?")) return;
+                try {
+                    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                    if (res.ok) loadExams();
+                    else alert("Xóa thất bại!");
+                } catch (error) {
+                    console.error(error);
+                    alert("Xóa thất bại!");
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadLookupData();
+                await loadExams();
+
+                const modal = document.getElementById('examModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) closeExamModal();
+                    });
+                }
+            });
+        </script>
+    </th:block>
 </body>
 </html>

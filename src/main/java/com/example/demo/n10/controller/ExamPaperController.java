@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/exam-papers")
+@CrossOrigin("*") // Cho phép truy cập từ mọi nguồn
 public class ExamPaperController {
 
     private final ExamPaperService examPaperService;

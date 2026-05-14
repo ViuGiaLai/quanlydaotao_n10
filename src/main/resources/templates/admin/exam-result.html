@@ -1,284 +1,379 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
-<head>
-    <title>Exam Result</title>
-    <th:block layout:fragment="css"></th:block>
-</head>
-<body>
-<th:block layout:fragment="active_page_setter">
-    <th:block th:with="activePage='exam-result'"></th:block>
-</th:block>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
 
-<div layout:fragment="content">
-    <div class="app-content">
-        <div class="container-fluid">
-            <div class="row mb-3">
-                <div class="col-12 text-end">
-                    <button class="btn btn-primary" onclick="openResultModal()">
-                        <i class="bi bi-plus-lg"></i> Thêm Kết Quả Thi
-                    </button>
+<head>
+    <title>Quản Lý Điểm</title>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exam-results'"></th:block>
+
+        <div class="app-content">
+            <div class="container-fluid">
+                <!-- Action Button Row -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <h3 class="mb-0">Quản Lý Điểm</h3>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button class="btn btn-success me-2" onclick="exportExcel()">
+                            <i class="bi bi-file-earmark-excel"></i> Export Excel
+                        </button>
+                        <button class="btn btn-danger" onclick="exportPDF()">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Lớp Học</label>
+                                <select class="form-select" id="courseClassId" onchange="loadResults()">
+                                    <option value="">-- Tất cả --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Môn Học</label>
+                                <select class="form-select" id="subjectId" onchange="loadResults()">
+                                    <option value="">-- Tất cả --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Trạng Thái</label>
+                                <select class="form-select" id="filterStatus" onchange="loadResults()">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="true">Đã mở nhập</option>
+                                    <option value="false">Đã khóa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tìm kiếm</label>
+                                <input type="text" class="form-control" id="searchText" placeholder="Mã SV hoặc tên..." onkeyup="loadResults()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Card -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Danh Sách Điểm</h5>
+                                <div>
+                                    <span class="badge bg-warning me-2">Chuyên cần: 10%</span>
+                                    <span class="badge bg-info me-2">Kiểm tra: 20%</span>
+                                    <span class="badge bg-primary me-2">Giữa kỳ: 20%</span>
+                                    <span class="badge bg-success">Cuối kỳ: 50%</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th rowspan="2" class="text-center align-middle">Mã SV</th>
+                                                <th rowspan="2" class="text-center align-middle">Họ Tên</th>
+                                                <th colspan="4" class="text-center">Điểm Thành Phần</th>
+                                                <th rowspan="2" class="text-center align-middle">Tổng</th>
+                                                <th rowspan="2" class="text-center align-middle">Trạng Thái</th>
+                                                <th rowspan="2" class="text-center align-middle">Thao Tác</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-center">CC(10%)</th>
+                                                <th class="text-center">KT(20%)</th>
+                                                <th class="text-center">GK(20%)</th>
+                                                <th class="text-center">CK(50%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="examResultTableBody">
+                                            <!-- Data will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="examResultPagination" class="d-flex justify-content-center mt-3 mb-3"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Danh Sách Kết Quả Thi</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                    <tr>
-                                        <th>Đăng Ký Thi</th>
-                                        <th>Điểm</th>
-                                        <th>Trạng Thái</th>
-                                        <th>Khóa</th>
-                                        <th>Kích Hoạt</th>
-                                        <th>Hành Động</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="resultTableBody"></tbody>
-                                </table>
+        <!-- Modal for Special Edit (Complaints) -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Chỉnh Sửa Đặc Biệt (Khiếu Nại)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editForm">
+                            <input type="hidden" id="resultId">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Điểm Chuyên Cần (10%)</label>
+                                    <input type="number" step="0.1" min="0" max="10" class="form-control" id="attendanceScore">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Điểm Kiểm Tra (20%)</label>
+                                    <input type="number" step="0.1" min="0" max="10" class="form-control" id="testScore">
+                                </div>
                             </div>
-                            <div class="p-3 border-top" id="resultPagination"></div>
-                        </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <label class="form-label">Điểm Giữa Kỳ (20%)</label>
+                                    <input type="number" step="0.1" min="0" max="10" class="form-control" id="midtermScore">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Điểm Cuối Kỳ (50%)</label>
+                                    <input type="number" step="0.1" min="0" max="10" class="form-control" id="finalScore">
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <label class="form-label">Ghi Chú</label>
+                                    <textarea class="form-control" id="adminNote" rows="2" placeholder="Lý do chỉnh sửa..."></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="saveSpecialEdit()">Lưu</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="resultModalTitle">Thêm Kết Quả Thi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="resultForm">
-                        <input type="hidden" id="resultId">
+    <th:block layout:fragment="script">
+        <script>
+            const API_URL = "/api/exam-results";
+            const PAGE_SIZE = 15;
+            let resultItems = [];
+            let currentPage = 1;
 
-                        <div class="mb-3">
-                            <label for="registrationId" class="form-label">Đăng Ký Thi</label>
-                            <select class="form-select" id="registrationId" required>
-                                <option value="">-- Chọn Đăng Ký Thi --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="score" class="form-label">Điểm</label>
-                            <input type="number" step="0.01" class="form-control" id="score" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="status" class="form-label">Trạng Thái</label>
-                            <input type="text" class="form-control" id="status" required>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="isLocked">
-                            <label class="form-check-label" for="isLocked">Khóa kết quả</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="isActive" checked>
-                            <label class="form-check-label" for="isActive">Kích hoạt</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveResult()">Lưu</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<th:block layout:fragment="script">
-    <script>
-        const SELECTOR_SIDEBAR_WRAPPER = ".sidebar-wrapper";
-        const Default = {
-            scrollbarTheme: "os-theme-light",
-            scrollbarAutoHide: "leave",
-            scrollbarClickScroll: true
-        };
-        document.addEventListener("DOMContentLoaded", function () {
-            const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
-            if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined) {
-                OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
-                    scrollbars: {
-                        theme: Default.scrollbarTheme,
-                        autoHide: Default.scrollbarAutoHide,
-                        clickScroll: Default.scrollbarClickScroll
-                    }
-                });
+            async function loadLookupData() {
+                try {
+                    const [classesRes, subjectsRes] = await Promise.all([
+                        fetch("/api/course-classes/list"),
+                        fetch("/api/subjects/list")
+                    ]);
+                    const classes = await classesRes.json();
+                    const subjects = await subjectsRes.json();
+                    
+                    const classSelect = document.getElementById("courseClassId");
+                    const subjectSelect = document.getElementById("subjectId");
+                    
+                    classes.forEach(c => {
+                        classSelect.innerHTML += `<option value="${c.id}">${c.className || c.name}</option>`;
+                    });
+                    subjects.forEach(s => {
+                        subjectSelect.innerHTML += `<option value="${s.id}">${s.subjectName || s.name}</option>`;
+                    });
+                } catch (e) {
+                    console.error("Load lookup error:", e);
+                }
             }
-        });
-    </script>
 
-    <script>
-        const REGISTRATION_API_URL = "/api/exam-registrations/list";
-        const RESULT_API_URL = "/api/exam-results";
-        const RESULT_PAGE_SIZE = 10;
-        let registrationsList = [];
-        let resultItems = [];
-        let resultCurrentPage = 1;
-
-        async function loadLookupData() {
-            try {
-                const res = await fetch(REGISTRATION_API_URL);
-                registrationsList = await res.json();
-                populateSelects();
-            } catch (error) {
-                console.error("Load lookup data error:", error);
+            async function loadResults() {
+                try {
+                    const courseClassId = document.getElementById("courseClassId").value;
+                    const subjectId = document.getElementById("subjectId").value;
+                    const filterStatus = document.getElementById("filterStatus").value;
+                    const searchText = document.getElementById("searchText").value;
+                    
+                    let url = API_URL + "?";
+                    if (courseClassId) url += "courseClassId=" + courseClassId + "&";
+                    if (subjectId) url += "subjectId=" + subjectId + "&";
+                    if (filterStatus) url += "isEditable=" + filterStatus + "&";
+                    if (searchText) url += "search=" + encodeURIComponent(searchText) + "&";
+                    
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("API error: " + res.status);
+                    const data = await res.json();
+                    resultItems = Array.isArray(data) ? data : [];
+                    currentPage = 1;
+                    renderTable();
+                } catch (e) {
+                    console.error("Load error:", e);
+                    document.getElementById("examResultTableBody").innerHTML = 
+                        `<tr><td colspan="9" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+                }
             }
-        }
 
-        function populateSelects() {
-            const regSelect = document.getElementById("registrationId");
-            if (!regSelect) return;
-            regSelect.innerHTML = '<option value="">-- Chọn Đăng Ký Thi --</option>';
-            registrationsList.forEach(r => {
-                regSelect.innerHTML += `<option value="${r.id}">${r.rollNumber || r.id}</option>`;
+            function renderTable() {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const pageItems = resultItems.slice(start, start + PAGE_SIZE);
+                
+                let html = "";
+                if (pageItems.length === 0) {
+                    html = `<tr><td colspan="9" class="text-center text-muted">Không có dữ liệu</td></tr>`;
+                } else {
+                    pageItems.forEach(r => {
+                        html += `
+                            <tr>
+                                <td>${r.studentCode || '-'}</td>
+                                <td>${r.studentName || '-'}</td>
+                                <td class="text-center">${r.attendanceScore ?? '-'}</td>
+                                <td class="text-center">${r.testScore ?? '-'}</td>
+                                <td class="text-center">${r.midtermScore ?? '-'}</td>
+                                <td class="text-center">${r.finalScore ?? '-'}</td>
+                                <td class="text-center fw-bold">${r.totalScore ?? 0}</td>
+                                <td>
+                                    <span class="badge ${r.isEditable ? 'bg-success' : 'bg-danger'}">
+                                        ${r.isEditable ? 'Mở nhập' : 'Khóa'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm me-1" onclick="toggleEditable('${r.id}', ${!r.isEditable})" 
+                                            title="${r.isEditable ? 'Khóa nhập điểm' : 'Mở nhập điểm'}">
+                                        <i class="bi ${r.isEditable ? 'bi-lock' : 'bi-unlock'}"></i>
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" onclick="editResult('${r.id}')" title="Chỉnh sửa đặc biệt">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                document.getElementById("examResultTableBody").innerHTML = html;
+                renderPagination();
+            }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(resultItems.length / PAGE_SIZE);
+                if (totalPages <= 1) {
+                    document.getElementById("examResultPagination").innerHTML = "";
+                    return;
+                }
+                
+                let html = `<nav><ul class="pagination">`;
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <button class="page-link" onclick="goToPage(${currentPage - 1})">Trước</button>
+                </li>`;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                    </li>`;
+                }
+                
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <button class="page-link" onclick="goToPage(${currentPage + 1})">Sau</button>
+                </li></ul></nav>`;
+                
+                document.getElementById("examResultPagination").innerHTML = html;
+            }
+
+            function goToPage(page) {
+                const totalPages = Math.ceil(resultItems.length / PAGE_SIZE);
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                renderTable();
+            }
+
+            // Toggle isEditable - Mở/Khóa nhập điểm
+            async function toggleEditable(id, isEditable) {
+                const action = isEditable ? "mở" : "khóa";
+                if (!confirm(`Bạn có chắc muốn ${action} nh��p điểm cho sinh viên này?`)) return;
+                
+                try {
+                    const res = await fetch(`${API_URL}/${id}/toggle-edit`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ isEditable: isEditable })
+                    });
+                    if (!res.ok) throw new Error("Toggle failed");
+                    loadResults();
+                } catch (e) {
+                    console.error("Toggle error:", e);
+                    alert("Thất bại: " + e.message);
+                }
+            }
+
+            // Edit special - Chỉnh sửa đặc biệt
+            function editResult(id) {
+                const r = resultItems.find(item => item.id === id);
+                if (!r) return;
+                
+                document.getElementById("resultId").value = id;
+                document.getElementById("attendanceScore").value = r.attendanceScore || "";
+                document.getElementById("testScore").value = r.testScore || "";
+                document.getElementById("midtermScore").value = r.midtermScore || "";
+                document.getElementById("finalScore").value = r.finalScore || "";
+                document.getElementById("adminNote").value = "";
+                
+                var modalEl = document.getElementById('editModal');
+                if (modalEl) {
+                    var myModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    myModal.show();
+                }
+            }
+
+            async function saveSpecialEdit() {
+                const id = document.getElementById("resultId").value;
+                if (!id) return;
+                
+                const data = {
+                    attendanceScore: parseFloat(document.getElementById("attendanceScore").value) || null,
+                    testScore: parseFloat(document.getElementById("testScore").value) || null,
+                    midtermScore: parseFloat(document.getElementById("midtermScore").value) || null,
+                    finalScore: parseFloat(document.getElementById("finalScore").value) || null,
+                    adminNote: document.getElementById("adminNote").value
+                };
+                
+                try {
+                    const res = await fetch(`${API_URL}/${id}/admin-edit`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                    if (!res.ok) throw new Error("Save failed");
+                    var modalEl = document.getElementById('editModal');
+                if (modalEl) {
+                    var myModal = bootstrap.Modal.getInstance(modalEl);
+                    if (myModal) myModal.hide();
+                }
+                    loadResults();
+                    alert("Lưu thành công!");
+                } catch (e) {
+                    console.error("Save error:", e);
+                    alert("Lưu thất bại: " + e.message);
+                }
+            }
+
+            // Export
+            function exportExcel() {
+                const courseClassId = document.getElementById("courseClassId").value;
+                const subjectId = document.getElementById("subjectId").value;
+                let url = API_URL + "/export?format=excel";
+                if (courseClassId) url += "&courseClassId=" + courseClassId;
+                if (subjectId) url += "&subjectId=" + subjectId;
+                window.open(url, '_blank');
+            }
+
+            function exportPDF() {
+                const courseClassId = document.getElementById("courseClassId").value;
+                const subjectId = document.getElementById("subjectId").value;
+                let url = API_URL + "/export?format=pdf";
+                if (courseClassId) url += "&courseClassId=" + courseClassId;
+                if (subjectId) url += "&subjectId=" + subjectId;
+                window.open(url, '_blank');
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadLookupData();
+                await loadResults();
             });
-        }
-
-        function getRegistrationInfo(regId) {
-            if (!regId) return "";
-            if (!Array.isArray(registrationsList) || registrationsList.length === 0) return String(regId).substring(0, 8);
-            const reg = registrationsList.find(r => String(r.id) === String(regId));
-            return reg ? (reg.rollNumber || String(regId).substring(0, 8)) : String(regId).substring(0, 8);
-        }
-
-        async function loadResults() {
-            try {
-                const res = await fetch(RESULT_API_URL);
-                const data = await res.json();
-                resultItems = Array.isArray(data) ? data : [];
-                resultCurrentPage = 1;
-                if (registrationsList.length === 0) {
-                    await loadLookupData();
-                }
-                renderResultTable();
-            } catch (error) {
-                console.error("Load results error:", error);
-                alert("Không thể tải danh sách kết quả thi.");
-            }
-        }
-
-        function renderResultTable() {
-            const pageItems = AdminPagination.paginate(resultItems, resultCurrentPage, RESULT_PAGE_SIZE);
-            let html = "";
-            pageItems.forEach((result) => {
-                    html += `
-                        <tr>
-                            <td>${getRegistrationInfo(result.registrationId)}</td>
-                            <td>${result.score ?? ""}</td>
-                            <td>${result.status || ""}</td>
-                            <td>
-                                <span class="badge ${result.isLocked ? "text-bg-warning" : "text-bg-secondary"}">
-                                    ${result.isLocked ? "Đã khóa" : "Mở"}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge ${result.isActive ? "text-bg-success" : "text-bg-danger"}">
-                                    ${result.isActive ? "Hoạt động" : "Vô hiệu"}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick='editResult(${JSON.stringify(result)})'>
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteResult('${result.id}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            document.getElementById("resultTableBody").innerHTML = html;
-            AdminPagination.render("resultPagination", resultItems.length, resultCurrentPage, RESULT_PAGE_SIZE, (nextPage) => {
-                resultCurrentPage = nextPage;
-                renderResultTable();
-            });
-        }
-
-        function openResultModal() {
-            document.getElementById("resultModalTitle").innerText = "Thêm Kết Quả Thi";
-            document.getElementById("resultId").value = "";
-            document.getElementById("resultForm").reset();
-            document.getElementById("isActive").checked = true;
-            document.getElementById("isLocked").checked = false;
-            $("#resultModal").modal("show");
-        }
-
-        function editResult(result) {
-            document.getElementById("resultModalTitle").innerText = "Sửa Kết Quả Thi";
-            document.getElementById("resultId").value = result.id || "";
-            document.getElementById("registrationId").value = result.registrationId || "";
-            document.getElementById("score").value = result.score ?? "";
-            document.getElementById("status").value = result.status || "";
-            document.getElementById("isLocked").checked = !!result.isLocked;
-            document.getElementById("isActive").checked = !!result.isActive;
-            $("#resultModal").modal("show");
-        }
-
-        async function saveResult() {
-            const id = document.getElementById("resultId").value;
-            const payload = {
-                registrationId: document.getElementById("registrationId").value.trim(),
-                score: Number(document.getElementById("score").value),
-                status: document.getElementById("status").value.trim(),
-                isLocked: document.getElementById("isLocked").checked,
-                isActive: document.getElementById("isActive").checked
-            };
-
-            const method = id ? "PUT" : "POST";
-            const url = id ? `${RESULT_API_URL}/${id}` : RESULT_API_URL;
-
-            try {
-                const res = await fetch(url, {
-                    method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(errorText || "Save failed");
-                }
-
-                $("#resultModal").modal("hide");
-                loadResults();
-            } catch (error) {
-                console.error("Save result error:", error);
-                alert("Lưu kết quả thi thất bại.");
-            }
-        }
-
-        async function deleteResult(id) {
-            if (!confirm("Bạn có chắc muốn xóa kết quả này?")) {
-                return;
-            }
-            try {
-                const res = await fetch(`${RESULT_API_URL}/${id}`, { method: "DELETE" });
-                if (!res.ok) {
-                    throw new Error("Delete failed");
-                }
-                loadResults();
-            } catch (error) {
-                console.error("Delete result error:", error);
-                alert("Xóa kết quả thi thất bại.");
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            await loadLookupData();
-            await loadResults();
-        });
-    </script>
-</th:block>
+        </script>
+    </th:block>
 </body>
 </html>

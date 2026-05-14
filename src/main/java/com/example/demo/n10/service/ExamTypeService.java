@@ -26,13 +26,15 @@ public class ExamTypeService {
     }
 
     public ExamType save(ExamType examType) {
-        if (examType.getCreatedAt() == null) {
-            examType.setCreatedAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        if (examType.getId() == null) {
+            // New entity - set createdAt
+            examType.setCreatedAt(now);
         }
         if (examType.getIsActive() == null) {
             examType.setIsActive(true);
         }
-        examType.setUpdatedAt(LocalDateTime.now());
+        examType.setUpdatedAt(now);
         return examTypeRepository.save(examType);
     }
 

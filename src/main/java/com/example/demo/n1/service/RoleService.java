@@ -36,4 +36,17 @@ public class RoleService {
         r.getPermissions().add(p);
         return roleRepo.save(r);
     }
+
+    public Role updateRole(UUID id, Role role) {
+        Role existing = roleRepo.findById(id).orElseThrow();
+        existing.setCode(role.getCode());
+        existing.setName(role.getName());
+        existing.setDescription(role.getDescription());
+        existing.setIsSystem(role.getIsSystem());
+        return roleRepo.save(existing);
+    }
+
+    public void deleteRole(UUID id) {
+        roleRepo.deleteById(id);
+    }
 }

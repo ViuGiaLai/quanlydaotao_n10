@@ -24,22 +24,102 @@
                             <th>Trạng Thái</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="student : ${students}">
-                            <td th:text="${student.code}">-</td>
-                            <td th:text="${student.fullname}">-</td>
-                            <td th:text="${student.dateOfBirth}">-</td>
-                            <td th:text="${student.majorId}">-</td>
-                            <td><span class="badge bg-success">Đang học</span></td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(students)}">
-                            <td colspan="5" class="text-center text-muted">Không có sinh viên nào</td>
-                        </tr>
+                    <tbody id="studentTable">
+                        <!-- Data loaded via JS -->
                     </tbody>
                 </table>
+                <div id="studentPagination" class="d-flex justify-content-center mt-3 mb-3"></div>
             </div>
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script>
+        const API_URL = "/api/students";
+        const PAGE_SIZE = 10;
+        let studentItems = [];
+        let currentPage = 1;
+
+        async function loadStudents() {
+            try {
+                const res = await fetch(API_URL);
+                if (!res.ok) throw new Error("API error: " + res.status);
+                const data = await res.json();
+                studentItems = Array.isArray(data) ? data : [];
+                currentPage = 1;
+                renderTable();
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById("studentTable").innerHTML = 
+                    `<tr><td colspan="5" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderTable() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageItems = studentItems.slice(start, end);
+            
+            let html = "";
+            if (pageItems.length === 0) {
+                html = `<tr><td colspan="5" class="text-center text-muted">Không có sinh viên nào</td></tr>`;
+            } else {
+                pageItems.forEach(s => {
+                    html += `
+                        <tr>
+                            <td>${s.code || '-'}</td>
+                            <td>${s.fullname || '-'}</td>
+                            <td>${s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString() : '-'}</td>
+                            <td>${s.majorId || '-'}</td>
+                            <td><span class="badge bg-success">Đang học</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById("studentTable").innerHTML = html;
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(studentItems.length / PAGE_SIZE);
+            if (totalPages <= 1) {
+                document.getElementById("studentPagination").innerHTML = "";
+                return;
+            }
+            
+            let html = `<nav><ul class="pagination">`;
+            
+            // Previous
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage - 1})">Trước</button>
+            </li>`;
+            
+            // Pages
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                </li>`;
+            }
+            
+            // Next
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage + 1})">Sau</button>
+            </li>`;
+            
+            html += `</ul></nav>`;
+            document.getElementById("studentPagination").innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(studentItems.length / PAGE_SIZE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadStudents);
+    </script>
+</th:block>
 </body>
 </html>

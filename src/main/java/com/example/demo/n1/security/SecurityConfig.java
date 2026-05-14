@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/error", "/favicon.ico", "/unauthorized").permitAll()
+                        .requestMatchers("/login", "/error", "/favicon.ico", "/unauthorized", "/logout").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/assets/**", "/plugins/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .failureUrl("/login?error")
                         .permitAll())
                 .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "POST"))
                         .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")

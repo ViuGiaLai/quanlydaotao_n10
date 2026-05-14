@@ -12,46 +12,332 @@
 <div layout:fragment="content">
     <div class="container-fluid">
         <h2 class="mb-4">Nhập Điểm</h2>
-        <div class="card">
+        
+        <!-- Chọn lớp/môn học -->
+        <div class="card mb-3">
             <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Mã SV</th>
-                            <th>Họ Tên</th>
-                            <th>Môn Thi</th>
-                            <th>Điểm</th>
-                            <th>Ghi Chú</th>
-                            <th>Thao Tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="result : ${results}">
-                            <td th:text="${result.registrationId}">-</td>
-                            <td>-</td>
-                            <td th:text="${result.examId}">-</td>
-                            <td th:text="${result.score}">-</td>
-                            <td th:text="${result.status}">-</td>
-                            <td>
-                                <form th:action="@{/teacher/scores/save}" method="post" class="d-flex">
-                                    <input type="hidden" name="resultId" th:value="${result.id}">
-                                    <input type="number" step="0.1" min="0" max="10" 
-                                           name="score" th:value="${result.score}" class="form-control form-control-sm" style="width:80px">
-                                    <input type="hidden" name="status" value="GRADED">
-                                    <button type="submit" class="btn btn-success btn-sm">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(results)}">
-                            <td colspan="6" class="text-center text-muted">Chưa có dữ liệu</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Chọn Lớp Học</label>
+                        <select class="form-select" id="courseClassId" onchange="loadStudents()">
+                            <option value="">-- Chọn Lớp --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Chọn Môn Học</label>
+                        <select class="form-select" id="subjectId" onchange="loadStudents()">
+                            <option value="">-- Chọn Môn --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hành Động</label>
+                        <div>
+                            <button class="btn btn-primary" onclick="loadStudents()">
+                                <i class="fas fa-search"></i> Tìm
+                            </button>
+                            <button class="btn btn-success" onclick="exportExcel()">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông báo trạng thái -->
+        <div id="statusMessage" class="alert alert-info d-none"></div>
+
+        <!-- Danh sách sinh viên -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Danh Sách Điểm Sinh Viên</h5>
+                <div>
+                    <span class="badge bg-warning me-2">Chuyên cần: 10%</span>
+                    <span class="badge bg-info me-2">Kiểm tra: 20%</span>
+                    <span class="badge bg-primary me-2">Giữa kỳ: 20%</span>
+                    <span class="badge bg-success">Cuối kỳ: 50%</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th rowspan="2" class="text-center align-middle">Mã SV</th>
+                                <th rowspan="2" class="text-center align-middle">Họ Tên</th>
+                                <th colspan="4" class="text-center">Điểm Thành Phần</th>
+                                <th rowspan="2" class="text-center align-middle">Tổng</th>
+                                <th rowspan="2" class="text-center align-middle">Thao Tác</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center">Chuyên cần<br>(10%)</th>
+                                <th class="text-center">Kiểm tra<br>(20%)</th>
+                                <th class="text-center">Giữa kỳ<br>(20%)</th>
+                                <th class="text-center">Cuối kỳ<br>(50%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreTable">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">Vui lòng chọn lớp và môn học</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="scorePagination" class="d-flex justify-content-center mt-3"></div>
             </div>
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script>
+        const API_URL = "/api/exam-results";
+        const PAGE_SIZE = 20;
+        let scoreItems = [];
+        let currentPage = 1;
+        let isEditable = false;
+
+        // Load danh sách lớp và môn
+        async function loadLookupData() {
+            try {
+                const [classesRes, subjectsRes] = await Promise.all([
+                    fetch("/api/course-classes/list"),
+                    fetch("/api/subjects/list")
+                ]);
+                const classes = await classesRes.json();
+                const subjects = await subjectsRes.json();
+                
+                const classSelect = document.getElementById("courseClassId");
+                const subjectSelect = document.getElementById("subjectId");
+                
+                classes.forEach(c => {
+                    classSelect.innerHTML += `<option value="${c.id}">${c.className || c.name}</option>`;
+                });
+                subjects.forEach(s => {
+                    subjectSelect.innerHTML += `<option value="${s.id}">${s.subjectName || s.name}</option>`;
+                });
+            } catch (e) {
+                console.error("Load lookup error:", e);
+            }
+        }
+
+        // Load danh sách điểm
+        async function loadStudents() {
+            const courseClassId = document.getElementById("courseClassId").value;
+            const subjectId = document.getElementById("subjectId").value;
+            
+            if (!courseClassId || !subjectId) {
+                document.getElementById("scoreTable").innerHTML = 
+                    `<tr><td colspan="9" class="text-center text-muted">Vui lòng chọn lớp và môn học</td></tr>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}?courseClassId=${courseClassId}&subjectId=${subjectId}`);
+                const data = await res.json();
+                scoreItems = Array.isArray(data) ? data : [];
+                currentPage = 1;
+                
+                // Kiểm tra có được phép sửa không
+                isEditable = scoreItems.length > 0 && scoreItems[0].isEditable;
+                
+                renderTable();
+                showStatus();
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById("scoreTable").innerHTML = 
+                    `<tr><td colspan="9" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        function showStatus() {
+            const msgDiv = document.getElementById("statusMessage");
+            if (isEditable) {
+                msgDiv.className = "alert alert-success";
+                msgDiv.innerHTML = "<i class='fas fa-check-circle'></i> Đang cho phép nhập điểm";
+            } else {
+                msgDiv.className = "alert alert-warning";
+                msgDiv.innerHTML = "<i class='fas fa-lock'></i> Đã khóa - Admin chưa cho phép nhập điểm";
+            }
+            msgDiv.classList.remove("d-none");
+        }
+
+        function renderTable() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageItems = scoreItems.slice(start, end);
+            
+            let html = "";
+            if (pageItems.length === 0) {
+                html = `<tr><td colspan="9" class="text-center text-muted">Không có dữ liệu</td></tr>`;
+            } else {
+                pageItems.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.studentCode || '-'}</td>
+                            <td>${item.studentName || '-'}</td>
+                            <td>
+                                <input type="number" step="0.1" min="0" max="10" 
+                                       class="form-control form-control-sm" 
+                                       value="${item.attendanceScore || ''}"
+                                       ${!isEditable ? 'disabled' : ''}
+                                       onchange="saveScore('${item.id}', 'attendanceScore', this.value)"
+                                       placeholder="0-10">
+                            </td>
+                            <td>
+                                <input type="number" step="0.1" min="0" max="10" 
+                                       class="form-control form-control-sm" 
+                                       value="${item.testScore || ''}"
+                                       ${!isEditable ? 'disabled' : ''}
+                                       onchange="saveScore('${item.id}', 'testScore', this.value)"
+                                       placeholder="0-10">
+                            </td>
+                            <td>
+                                <input type="number" step="0.1" min="0" max="10" 
+                                       class="form-control form-control-sm" 
+                                       value="${item.midtermScore || ''}"
+                                       ${!isEditable ? 'disabled' : ''}
+                                       onchange="saveScore('${item.id}', 'midtermScore', this.value)"
+                                       placeholder="0-10">
+                            </td>
+                            <td>
+                                <input type="number" step="0.1" min="0" max="10" 
+                                       class="form-control form-control-sm" 
+                                       value="${item.finalScore || ''}"
+                                       ${!isEditable ? 'disabled' : ''}
+                                       onchange="saveScore('${item.id}', 'finalScore', this.value)"
+                                       placeholder="0-10">
+                            </td>
+                            <td class="text-center fw-bold">${item.totalScore || 0}</td>
+                            <td>
+                                <button class="btn btn-success btn-sm" 
+                                        onclick="saveAllScores('${item.id}')"
+                                        ${!isEditable ? 'disabled' : ''}
+                                        title="Lưu">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById("scoreTable").innerHTML = html;
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(scoreItems.length / PAGE_SIZE);
+            if (totalPages <= 1) {
+                document.getElementById("scorePagination").innerHTML = "";
+                return;
+            }
+            
+            let html = `<nav><ul class="pagination">`;
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage - 1})">Trước</button>
+            </li>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                </li>`;
+            }
+            
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage + 1})">Sau</button>
+            </li></ul></nav>`;
+            
+            document.getElementById("scorePagination").innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(scoreItems.length / PAGE_SIZE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        // Lưu từng loại điểm
+        async function saveScore(id, field, value) {
+            if (!isEditable) {
+                alert("Admin chưa cho phép nhập điểm!");
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        [field]: value ? parseFloat(value) : null
+                    })
+                });
+                if (!res.ok) throw new Error("Save failed");
+                
+                // Cập nhật lại local data
+                const item = scoreItems.find(i => i.id === id);
+                if (item) {
+                    item[field] = value ? parseFloat(value) : null;
+                    item.totalScore = calculateTotal(item);
+                }
+                renderTable();
+            } catch (e) {
+                console.error("Save error:", e);
+                alert("Lưu thất bại: " + e.message);
+            }
+        }
+
+        // Lưu tất cả điểm
+        async function saveAllScores(id) {
+            if (!isEditable) {
+                alert("Admin chưa cho phép nhập điểm!");
+                return;
+            }
+            
+            const item = scoreItems.find(i => i.id === id);
+            if (!item) return;
+            
+            try {
+                const res = await fetch(`${API_URL}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        attendanceScore: item.attendanceScore,
+                        testScore: item.testScore,
+                        midtermScore: item.midtermScore,
+                        finalScore: item.finalScore
+                    })
+                });
+                if (!res.ok) throw new Error("Save failed");
+                alert("Lưu thành công!");
+            } catch (e) {
+                console.error("Save error:", e);
+                alert("Lưu thất bại!");
+            }
+        }
+
+        function calculateTotal(item) {
+            let total = 0;
+            if (item.attendanceScore) total += item.attendanceScore * 0.1;
+            if (item.testScore) total += item.testScore * 0.2;
+            if (item.midtermScore) total += item.midtermScore * 0.2;
+            if (item.finalScore) total += item.finalScore * 0.5;
+            return Math.round(total * 100) / 100;
+        }
+
+        // Export Excel
+        function exportExcel() {
+            const courseClassId = document.getElementById("courseClassId").value;
+            const subjectId = document.getElementById("subjectId").value;
+            if (!courseClassId || !subjectId) {
+                alert("Vui lòng chọn lớp và môn học");
+                return;
+            }
+            window.open(`${API_URL}/export?courseClassId=${courseClassId}&subjectId=${subjectId}&format=excel`, '_blank');
+        }
+
+        document.addEventListener("DOMContentLoaded", loadLookupData);
+    </script>
+</th:block>
 </body>
 </html>

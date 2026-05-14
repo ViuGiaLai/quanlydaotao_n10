@@ -1,244 +1,651 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Đào Tạo</title>
-    <meta name="_csrf" th:content="${_csrf.token}">
-    
+    <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">Hệ Thống Quản Lý Đào Tạo</title>
+    <meta name="_csrf" content="${_csrf.token}">
+    </meta>
+
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <style>
+        /* ====
+           PHONG CÁCH "CŨ CŨ" - QUẢN LÝ LỚP HỌC
+           Giữ nguyên cấu trúc, chỉ thay đổi style
+        ==== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #d4d0c8;
+            /* Màu nền kiểu cũ, hơi xám bẩn */
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            color: #2c2c2c;
+        }
+
         :root {
             --sidebar-width: 250px;
             --header-height: 60px;
-            --primary-color: #343a40;
-            --accent-color: #007bff;
+            --primary-color: #3b6e5c;
+            /* Xanh rêu cũ kỹ */
+            --accent-color: #8b5a2b;
+            /* Màu nâu đất - vintage */
+            --border-old: #9c8e7c;
+            --bg-old-panel: #f3efdf;
+            --shadow-old: 2px 2px 3px rgba(0, 0, 0, 0.1);
         }
-        
-        body {
-            font-family: 'Source Sans Pro', sans-serif;
-            background-color: #f4f6f9;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
+
+        /* Sidebar kiểu cũ */
+        #sidebar {
             width: var(--sidebar-width);
             height: 100vh;
             position: fixed;
             left: 0;
             top: 0;
             z-index: 1000;
-            background-color: var(--primary-color);
-            color: #fff;
-            overflow-y: auto;
-        }
-        
-        .sidebar .sidebar-header {
-            padding: 20px;
-            background: rgba(0,0,0,0.1);
-            border-bottom: 1px solid #4b545c;
-            display: flex;
-            align-items: center;
+            background-color: #2c4b3e;
+            /* Màu xanh rêu đậm cổ điển */
+            background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0px, rgba(0, 0, 0, 0.02) 2px, transparent 2px, transparent 6px);
+            color: #f0ead0;
+            transition: all 0.3s;
+            border-right: 1px solid #5e7a6b;
+            box-shadow: 3px 0 8px rgba(0, 0, 0, 0.15);
         }
 
-        .sidebar .sidebar-header img {
+        #sidebar .sidebar-header {
+            padding: 20px 12px;
+            background: #223d33;
+            border-bottom: 3px solid #c9a87b;
+            display: flex;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        #sidebar .sidebar-header img {
             width: 33px;
             height: 33px;
             margin-right: 10px;
+            filter: sepia(0.5) brightness(0.9);
+            border: 1px solid #b49b6c;
+            background: white;
         }
-        
-        .sidebar .nav-link {
-            padding: 12px 20px;
-            font-size: 1.1em;
+
+        #sidebar .sidebar-header span {
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fef2cf;
+            text-shadow: 1px 1px 0 #1e2f26;
+        }
+
+        #sidebar ul.components {
+            padding: 15px 0;
+        }
+
+        #sidebar ul li a {
+            padding: 10px 15px 10px 20px;
+            font-size: 0.9rem;
             display: block;
-            color: #c2c7d0;
+            color: #ddddbb;
             text-decoration: none;
-            transition: 0.3s;
-        }
-        
-        .sidebar .nav-link:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.1);
+            transition: 0.15s linear;
+            border-bottom: 1px solid #416454;
+            font-weight: 500;
+            font-family: 'Segoe UI', 'Source Sans Pro', monospace;
         }
 
-        .sidebar .nav-link.active {
-            background-color: var(--accent-color);
-            color: #fff;
-            border-radius: 4px;
-            margin: 0 10px;
+        #sidebar ul li a:hover {
+            color: #fff6dc;
+            background: #2a5b48;
+            border-left: 5px solid #e4b363;
+            padding-left: 15px;
         }
 
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
+        #sidebar ul li a.active {
+            background-color: #8b5a2b;
+            color: #fdf3cf;
+            border-left: 6px solid #ffdf9c;
+            border-radius: 0;
+            margin: 0;
+            font-weight: bold;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        #sidebar ul li a i {
+            margin-right: 12px;
+            width: 22px;
             text-align: center;
+            font-size: 1rem;
+            filter: drop-shadow(0 1px 0 #5f4c2b);
         }
-        
-        /* Content Styles */
-        .main-container {
+
+        /* Content Styles - Giao diện cũ đơn giản */
+        #content {
+            width: calc(100% - var(--sidebar-width));
             margin-left: var(--sidebar-width);
+            transition: all 0.3s;
             min-height: 100vh;
+            background: #e2dfcf;
+            background-image: radial-gradient(circle at 10% 20%, rgba(180, 160, 120, 0.08) 2%, transparent 2.5%);
+            background-size: 18px 18px;
         }
-        
+
         .navbar {
             height: var(--header-height);
-            background-color: #fff;
-            border-bottom: 1px solid #dee2e6;
+            background: #f5efdf;
+            border-bottom: 2px solid #bfa980;
             padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background-image: linear-gradient(to bottom, #fff6e8, #f0e6d2);
+        }
+
+        .navbar .btn-outline-secondary {
+            background: #e2cfaa;
+            border: 1px solid #aa8f64;
+            color: #5f4430;
+            font-size: 1rem;
+            padding: 4px 10px;
+        }
+
+        .navbar .btn-outline-secondary:hover {
+            background: #cbbf96;
+            border-color: #917b55;
+        }
+
+        .dropdown-toggle::after {
+            color: #7a6233;
+        }
+
+        .nav-link.dropdown-toggle {
+            background: #fcf5e6;
+            border-radius: 30px;
+            padding: 5px 12px;
+            border: 1px solid #d4bb8a;
         }
 
         .main-content {
-            padding: 20px;
+            padding: 25px 22px;
         }
 
+        /* Breadcrumb style cũ (nếu có) */
+        .breadcrumb {
+            background: #e9e2ce;
+            border-radius: 0;
+            padding: 8px 15px;
+            border-left: 5px solid #b69760;
+            font-size: 0.85rem;
+            margin-bottom: 1.8rem;
+            box-shadow: var(--shadow-old);
+        }
+
+        .breadcrumb-item a {
+            text-decoration: none;
+            color: #6e4f28;
+        }
+
+        /* Table style cổ điển - giữ nguyên logic chỉ css */
+        table,
+        .table {
+            background-color: #fcf8e8;
+            border: 1px solid #cabd91;
+            font-size: 0.85rem;
+            box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        table thead,
+        .table thead {
+            background: #c2b28b;
+            color: #2c2b1f;
+            border-bottom: 2px solid #9e8b60;
+        }
+
+        table th,
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #dacda4;
+            border-bottom: 1px solid #b7a16e;
+            padding: 10px 8px;
+        }
+
+        table td,
+        .table td {
+            border: 1px solid #ddd0ac;
+            padding: 8px;
+        }
+
+        /* Card / Panel cũ kỹ */
+        .card,
+        .panel {
+            background: #fffcf0;
+            border: 1px solid #cfbf93;
+            border-radius: 0px;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: #e5d9bc;
+            border-bottom: 1px solid #cbbd90;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            font-family: monospace;
+            letter-spacing: 0.3px;
+            color: #3d3a2b;
+        }
+
+        /* Buttons style - nút bấm giản dị */
+        .btn {
+            border-radius: 0px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 5px 14px;
+            border-width: 1px;
+        }
+
+        .btn-primary {
+            background-color: #7f6139;
+            border-color: #68512e;
+            color: #fff6e0;
+        }
+
+        .btn-primary:hover {
+            background-color: #5c4527;
+            border-color: #4e3b1f;
+        }
+
+        .btn-secondary {
+            background-color: #9b8a64;
+            border-color: #7a6844;
+            color: #2e2b1c;
+        }
+
+        .btn-warning {
+            background-color: #d6ae5c;
+            border-color: #b88d3c;
+            color: #352b16;
+        }
+
+        .btn-danger {
+            background-color: #aa6f5a;
+            border-color: #8b5440;
+        }
+
+        /* Input form style cũ */
+        input,
+        select,
+        textarea,
+        .form-control {
+            background: #fffef5;
+            border: 1px solid #bea97c;
+            border-radius: 0px;
+            padding: 6px 8px;
+            font-size: 0.85rem;
+            box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        input:focus,
+        select:focus,
+        .form-control:focus {
+            border-color: #9c7a48;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(150, 110, 50, 0.2);
+            background-color: #fffff2;
+        }
+
+        /* Modal cũ */
+        .modal-content {
+            background: #fcf5e7;
+            border-radius: 0px;
+            border: 1px solid #b29464;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #d7c299;
+            background: #efe3c9;
+        }
+
+        /* Footer */
         .main-footer {
-            padding: 15px 20px;
-            border-top: 1px solid #dee2e6;
-            background: #fff;
-            text-align: center;
-            color: #6c757d;
+            background: #dbd0b0 !important;
+            border-top: 2px solid #bba56c !important;
+            color: #4a3c20 !important;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            padding: 12px !important;
+        }
+
+        /* Pagination cũ */
+        .pagination .page-link {
+            background: #f3eada;
+            border: 1px solid #ccb786;
+            color: #69542e;
+            font-size: 0.8rem;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: #836e42;
+            border-color: #5c4a2a;
+            color: white;
+        }
+
+        /* Badge, alert cũ */
+        .badge {
+            border-radius: 0;
+            font-size: 0.7rem;
+            padding: 4px 7px;
+        }
+
+        .alert {
+            border-radius: 0px;
+            border-left: 6px solid;
+            background: #fef7e0;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                margin-left: -250px;
+            #sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
             }
-            .sidebar.active {
+
+            #sidebar.active {
                 margin-left: 0;
             }
-            .main-container {
+
+            #content {
+                width: 100%;
                 margin-left: 0;
+            }
+
+            #content.active {
+                margin-left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
             }
         }
+
+        /* Thêm style cho danh sách components giữ nguyên cấu trúc */
+        .list-group-item {
+            background-color: #fff6e6;
+            border: 1px solid #decb9c;
+        }
+
+        hr {
+            border-top: 1px solid #caba8a;
+        }
+
+        /* Custom table hover style cũ */
+        .table tbody tr:hover {
+            background-color: #efe0bd;
+        }
+
+        /* Toolbar cũ */
+        .card-tools button {
+            background: #dac08a;
+            border: 1px solid #b6904b;
+            color: #3f321c;
+        }
+
+        /* Sidebar scroll style cổ điển */
+        #sidebar ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar ::-webkit-scrollbar-track {
+            background: #2e5a48;
+        }
+
+        #sidebar ::-webkit-scrollbar-thumb {
+            background: #b8874b;
+        }
+
+        /* link đơn giản */
+        a:not(.btn):not(.nav-link) {
+            color: #7a592e;
+            text-decoration: underline dotted;
+        }
+
+        a:not(.btn):not(.nav-link):hover {
+            color: #4a351a;
+        }
+
+        /* Thêm style cho layout cũ đậm chất quản lý lớp học */
+        .main-content h1,
+        .main-content h2,
+        .main-content h3 {
+            font-family: 'Courier New', 'Source Sans Pro', monospace;
+            font-weight: 600;
+            border-left: 4px solid #b68948;
+            padding-left: 12px;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #3f3a28;
+        }
+
+        /* dropdown menu cũ */
+        .dropdown-menu {
+            background: #fff3e2;
+            border: 1px solid #cdb28b;
+            border-radius: 0px;
+        }
+
+        .dropdown-item {
+            font-size: 0.85rem;
+            color: #54482c;
+        }
+
+        .dropdown-item:hover {
+            background: #e2cfac;
+            color: #1e2a1c;
+        }
     </style>
+    <th:block layout:fragment="css"></th:block>
 </head>
+
 <body>
 
-    <!-- Sidebar -->
-    <div th:fragment="sidebar">
-        <nav class="sidebar">
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
             <div class="sidebar-header">
-                <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="Logo" class="brand-image img-circle elevation-3">
+                <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="Logo"
+                    class="brand-image img-circle elevation-3">
                 <span class="brand-text font-weight-light">QUẢN LÝ ĐÀO TẠO</span>
             </div>
 
-            <div class="nav flex-column">
-                <a th:href="@{/admin/students}" class="nav-link" th:classappend="${activePage == 'students'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-person-fill"></i>
-                    <span>Quản Lý Học Sinh</span>
-                </a>
-                <a th:href="@{/admin/exam-papers}" class="nav-link" th:classappend="${activePage == 'exam-papers'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-file-earmark-fill"></i>
-                    <span>Quản Lý Đề Thi</span>
-                </a>
-                <a th:href="@{/admin/exam-types}" class="nav-link" th:classappend="${activePage == 'exam-types'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-calendar-check-fill"></i>
-                    <span>Quản Lý Loại Kỳ Thi</span>
-                </a>
-                <a th:href="@{/admin/exams}" class="nav-link" th:classappend="${activePage == 'exams'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-calendar-check-fill"></i>
-                    <span>Quản Lý Lịch Thi</span>
-                </a>
-                <a th:href="@{/admin/exam-rooms}" class="nav-link" th:classappend="${activePage == 'exam-rooms'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-building-fill"></i>
-                    <span>Quản Lý Phòng Thi</span>
-                </a>
-                <a th:href="@{/admin/roles}" class="nav-link" th:classappend="${activePage == 'roles'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-person-rolodex"></i>
-                    <span>Quản Lý Vai Trò</span>
-                </a>
-                <a th:href="@{/admin/users}" class="nav-link" th:classappend="${activePage == 'users'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-person-lines-fill"></i>
-                    <span>Quản Lý Người Dùng</span>
-                </a>
-                <a th:href="@{/admin/permissions}" class="nav-link" th:classappend="${activePage == 'permissions'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-key-fill"></i>
-                    <span>Quản Lý Quyền</span>
-                </a>
-                <a th:href="@{/admin/role-permissions}" class="nav-link" th:classappend="${activePage == 'role-permissions'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-person-plus"></i>
-                    <span>Quản Lý Gán Quyền Vai Trò</span>
-                </a>
-                <a th:href="@{/admin/user-roles}" class="nav-link" th:classappend="${activePage == 'user-roles'} ? 'active' : ''">
-                    <i class="nav-icon bi bi-person-lines-fill"></i>
-                    <span>Quản Lý Gán Vai Trò Người Dùng</span>
-                </a>
-            </div>
+            <ul class="list-unstyled components">
+                <li class="nav-item">
+                    <a th:href="@{/admin/students}" class="nav-link"
+                        th:classappend="${activePage == 'students'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-person-fill"></i>
+                        <span>Quản Lý Học Sinh</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exam-papers}" class="nav-link"
+                        th:classappend="${activePage == 'exam-papers'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-file-earmark-fill"></i>
+                        <span>Quản Lý Đề Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exam-types}" class="nav-link"
+                        th:classappend="${activePage == 'exam-types'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-calendar-check-fill"></i>
+                        <span>Quản Lý Loại Kỳ Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exams}" class="nav-link"
+                        th:classappend="${activePage == 'exams'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-calendar-check-fill"></i>
+                        <span>Quản Lý Lịch Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exam-rooms}" class="nav-link"
+                        th:classappend="${activePage == 'exam-rooms'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-building-fill"></i>
+                        <span>Quản Lý Phòng Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exam-results}" class="nav-link"
+                        th:classappend="${activePage == 'exam-results'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-building-fill"></i>
+                        <span>Quản Lý Kết Quả Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/exam-registrations}" class="nav-link"
+                        th:classappend="${activePage == 'exam-registrations'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-building-fill"></i>
+                        <span>Quản Lý Đăng Ký Thi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/roles}" class="nav-link"
+                        th:classappend="${activePage == 'roles'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-person-rolodex"></i>
+                        <span>Quản Lý Vai Trò</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/users}" class="nav-link"
+                        th:classappend="${activePage == 'users'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-person-lines-fill"></i>
+                        <span>Quản Lý Người Dùng</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/permissions}" class="nav-link"
+                        th:classappend="${activePage == 'permissions'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-key-fill"></i>
+                        <span>Quản Lý Quyền</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/role-permissions}" class="nav-link"
+                        th:classappend="${activePage == 'role-permissions'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-person-plus"></i>
+                        <span>Quản Lý Gán Quyền Vai Trò</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/user-roles}" class="nav-link"
+                        th:classappend="${activePage == 'user-roles'} ? 'active' : ''">
+                        <i class="nav-icon bi bi-person-lines-fill"></i>
+                        <span>Quản Lý Gán Vai Trò Người Dùng</span>
+                    </a>
+                </li>
+            </ul>
         </nav>
-    </div>
 
-    <!-- Main Content Wrapper -->
-    <div th:fragment="main-content">
-        <div class="main-container">
+        <!-- Page Content -->
+        <div id="content">
+            <div style="display:none" layout:fragment="active_page_setter"></div>
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
                     <button type="button" id="sidebarCollapse" class="btn btn-outline-secondary d-md-none">
                         <i class="bi bi-list"></i>
                     </button>
-                    
+
                     <div class="ms-auto d-flex align-items-center">
                         <div class="dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg" class="rounded-circle me-2" width="30" height="30" alt="User">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                                data-bs-toggle="dropdown">
+                                <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg"
+                                    class="rounded-circle me-2" width="30" height="30" alt="User">
                                 <span class="d-none d-md-inline">Admin</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" style="display: inline; width: 100%;">
+                                        <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                        <button type="submit" class="dropdown-item" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; padding: 0.5rem 1rem;">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <div class="main-content" id="page-content">
-                <!-- Page content goes here -->
+            <div class="main-content">
+                <div layout:fragment="content">
+                    <!-- Page content goes here -->
+                </div>
             </div>
-            
-            <footer class="main-footer">
-                <strong>Copyright &copy; 2024 <a href="#">Quản Lý Đào Tạo</a>.</strong>
+
+            <footer class="main-footer px-4 py-3 border-top bg-white text-secondary text-center">
+                <strong>Copyright &copy; 2026 <a href="#">Quản Lý Đào Tạo</a>.</strong>
                 All rights reserved.
             </footer>
         </div>
     </div>
 
-    <!-- Modal fragment for child pages -->
-    <div th:fragment="modal-container"></div>
-
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+    <!-- Admin Pagination -->
+    <script src="/js/admin-pagination.js"></script>
+
     <script>
+        // Sidebar wrapper init (wrapped in try-catch to prevent errors)
+        try {
+            const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
+            const Default = {
+                scrollbarTheme: 'os-theme-light',
+                scrollbarAutoHide: 'leave',
+                scrollbarClickScroll: true,
+            };
+            document.addEventListener('DOMContentLoaded', function () {
+                const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+                if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined) {
+                    OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+                        scrollbars: {
+                            theme: Default.scrollbarTheme,
+                            autoHide: Default.scrollbarAutoHide,
+                            clickScroll: Default.scrollbarClickScroll,
+                        },
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Sidebar init error:", e);
+        }
+
         $(document).ready(function () {
             $('#sidebarCollapse').on('click', function () {
-                $('.sidebar').toggleClass('active');
-            });
-            
-            // Auto-set active menu based on current URL
-            var currentPath = window.location.pathname;
-            $('.sidebar .nav-link').each(function() {
-                var href = $(this).attr('href');
-                if (href && currentPath.includes(href.replace('/admin/', ''))) {
-                    $(this).addClass('active');
-                }
+                $('#sidebar, #content').toggleClass('active');
             });
         });
     </script>
+    <th:block layout:fragment="script"></th:block>
+</body>
 
-    </body>
 </html>

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/exam-types")
+@CrossOrigin(origins = "*")
 public class ExamTypeController {
 
     private final ExamTypeService examTypeService;

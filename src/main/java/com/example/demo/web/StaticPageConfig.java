@@ -19,9 +19,9 @@ public class StaticPageConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("classpath:/static/adminlte/css/");
 
-        // 🔥 FIX ../js → /js
+        // 🔥 FIX ../js → /js (bao gồm cả adminlte và custom JS)
         registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/adminlte/js/");
+                .addResourceLocations("classpath:/static/adminlte/js/", "classpath:/static/js/");
 
         // 🔥 FIX ../assets → /assets
         registry.addResourceHandler("/assets/**")
@@ -38,6 +38,9 @@ public class StaticPageConfig implements WebMvcConfigurer {
         // Trang chủ → cổng /admin (yêu cầu đăng nhập, xem SecurityConfig)
         registry.addRedirectViewController("/", "/admin");
         registry.addRedirectViewController("/admin", "/admin/exams");
+        
+        // Logout - redirect to login with logout param
+        registry.addRedirectViewController("/logout", "/login?logout");
 
         // Giữ tương thích URL cũ (AdminLTE static đã được thay bằng Thymeleaf templates)
         registry.addRedirectViewController("/adminlte/index.html", "/admin/exams");
@@ -47,6 +50,8 @@ public class StaticPageConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/exam-papers").setViewName("admin/exam-papers");
         registry.addViewController("/admin/exam-types").setViewName("admin/exam-types");
         registry.addViewController("/admin/exam-rooms").setViewName("admin/exam-rooms");
+        registry.addViewController("/admin/exam-registrations").setViewName("admin/exam-registration");
+        registry.addViewController("/admin/exam-results").setViewName("admin/exam-result");
         registry.addViewController("/admin/students").setViewName("admin/students");
         registry.addViewController("/admin/roles").setViewName("admin/roles");
         registry.addViewController("/admin/users").setViewName("admin/users");

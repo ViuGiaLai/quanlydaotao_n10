@@ -1,50 +1,82 @@
 package com.example.demo.n10.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "exam_rooms")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
 public class ExamRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id; // STT 1: id
+    private UUID id;
 
     @Column(name = "exam_id", nullable = false)
-    private UUID examId; // STT 2: exam_id
+    private UUID examId;
 
     @Column(name = "room_id", nullable = false)
-    private UUID roomId; // STT 3: room_id
+    private UUID roomId;
 
-    private Integer capacity; // STT 4: capacity
+    private Integer capacity;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(); // STT 5: created_at
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt; // STT 6: updated_at
+    private LocalDateTime updatedAt;
 
     @Column(name = "created_by")
-    private UUID createdBy; // STT 7: created_by
+    private UUID createdBy;
 
     @Column(name = "updated_by")
-    private UUID updatedBy; // STT 8: updated_by
+    private UUID updatedBy;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt; // STT 9: deleted_at
+    private LocalDateTime deletedAt;
 
     @Column(name = "deleted_by")
-    private UUID deletedBy; // STT 10: deleted_by
+    private UUID deletedBy;
 
     @Column(name = "is_active")
-    private Boolean isActive = true; // STT 11: is_active
-    
-    // Lưu ý: Nếu Huy muốn dùng tên phòng như đã thảo luận trước đó, 
-    // bạn có thể thêm trường này nhưng không thuộc danh sách 11 trường gốc.
+    private Boolean isActive;
+
     @Column(name = "exam_room_name")
-    private String examRoomName; 
+    private String examRoomName;
+
+    // Getters and Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public UUID getExamId() { return examId; }
+    public void setExamId(UUID examId) { this.examId = examId; }
+
+    public UUID getRoomId() { return roomId; }
+    public void setRoomId(UUID roomId) { this.roomId = roomId; }
+
+    public Integer getCapacity() { return capacity; }
+    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public UUID getCreatedBy() { return createdBy; }
+    public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
+
+    public UUID getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(UUID updatedBy) { this.updatedBy = updatedBy; }
+
+    public LocalDateTime getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+
+    public UUID getDeletedBy() { return deletedBy; }
+    public void setDeletedBy(UUID deletedBy) { this.deletedBy = deletedBy; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public String getExamRoomName() { return examRoomName; }
+    public void setExamRoomName(String examRoomName) { this.examRoomName = examRoomName; }
 }

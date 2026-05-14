@@ -1,323 +1,306 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
 <head>
-    <title>Exam Registration</title>
-    <th:block layout:fragment="css"></th:block>
+    <title>Exam Registrations</title>
 </head>
+
 <body>
-<th:block layout:fragment="active_page_setter">
-    <th:block th:with="activePage='exam-registration'"></th:block>
-</th:block>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exam-registrations'"></th:block>
 
-<div layout:fragment="content">
-    <div class="app-content">
-        <div class="container-fluid">
-            <div class="row mb-3">
-                <div class="col-12 text-end">
-                    <button class="btn btn-primary" onclick="openRegistrationModal()">
-                        <i class="bi bi-plus-lg"></i> Thêm Đăng Ký Thi
-                    </button>
+        <div class="app-content">
+            <div class="container-fluid">
+
+                <!-- Action -->
+                <div class="row mb-3">
+                    <div class="col-12 text-end">
+                        <button class="btn btn-primary" onclick="openRegistrationModal()">
+                            <i class="bi bi-plus-lg"></i> Thêm Đăng Ký Thi
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Danh Sách Đăng Ký Thi</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                    <tr>
-                                        <th>Kỳ Thi</th>
-                                        <th>Phòng Thi</th>
-                                        <th>Sinh Viên</th>
-                                        <th>Số Báo Danh</th>
-                                        <th>Trạng Thái</th>
-                                        <th>Hành Động</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="registrationTableBody"></tbody>
-                                </table>
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Danh Sách Đăng Ký Thi</h3>
                             </div>
-                            <div class="p-3 border-top" id="registrationPagination"></div>
+
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Kỳ Thi</th>
+                                                <th>Phòng Thi</th>
+                                                <th>Sinh Viên</th>
+                                                <th>Số Báo Danh</th>
+                                                <th>Trạng thái</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="registrationTableBody"></tbody>
+                                    </table>
+                                </div>
+
+                                <div id="registrationPagination" class="d-flex justify-content-center mt-3 mb-3"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="registrationModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="registrationModalTitle">Thêm Đăng Ký Thi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="registrationForm">
-                        <input type="hidden" id="registrationId">
+        <!-- MODAL -->
+        <div class="modal fade" id="registrationModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
 
-                        <div class="mb-3">
-                            <label for="examId" class="form-label">Kỳ Thi</label>
-                            <select class="form-select" id="examId" required>
-                                <option value="">-- Chọn Kỳ Thi --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="examRoomId" class="form-label">Phòng Thi</label>
-                            <select class="form-select" id="examRoomId" required>
-                                <option value="">-- Chọn Phòng Thi --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="studentId" class="form-label">Sinh Viên</label>
-                            <select class="form-select" id="studentId" required>
-                                <option value="">-- Chọn Sinh Viên --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="rollNumber" class="form-label">Số Báo Danh</label>
-                            <input type="text" class="form-control" id="rollNumber" required>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="isActive" checked>
-                            <label class="form-check-label" for="isActive">Kích hoạt</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveRegistration()">Lưu</button>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm Đăng Ký Thi</h5>
+                        <button class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="registrationForm">
+                            <input type="hidden" id="registrationId">
+
+                            <div class="mb-3">
+                                <label>Kỳ Thi</label>
+                                <input class="form-control" id="examId">
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Phòng Thi</label>
+                                <input class="form-control" id="examRoomId">
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Sinh Viên</label>
+                                <input class="form-control" id="studentId">
+                            </div>
+
+                            <div class="mb-3">
+                                <label>Số Báo Danh</label>
+                                <input class="form-control" id="rollNumber">
+                            </div>
+
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="isActive" checked>
+                                <label class="form-check-label">Kích hoạt</label>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button class="btn btn-primary" onclick="saveRegistration()">Lưu</button>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<th:block layout:fragment="script">
-    <script>
-        const SELECTOR_SIDEBAR_WRAPPER = ".sidebar-wrapper";
-        const Default = {
-            scrollbarTheme: "os-theme-light",
-            scrollbarAutoHide: "leave",
-            scrollbarClickScroll: true
-        };
-        document.addEventListener("DOMContentLoaded", function () {
-            const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
-            if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined) {
-                OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
-                    scrollbars: {
-                        theme: Default.scrollbarTheme,
-                        autoHide: Default.scrollbarAutoHide,
-                        clickScroll: Default.scrollbarClickScroll
+    </div>
+
+    <th:block layout:fragment="script">
+        <script>
+            const API_URL = "/api/exam-registrations";
+            const PAGE_SIZE = 10;
+
+            let registrationItems = [];
+            let currentPage = 1;
+
+            /* ---------------- LOAD ---------------- */
+            async function loadRegistrations() {
+                try {
+                    const res = await fetch(API_URL);
+                    if (!res.ok) throw new Error("API error " + res.status);
+
+                    const data = await res.json();
+                    registrationItems = Array.isArray(data) ? data : [];
+
+                    currentPage = 1;
+                    renderTable();
+
+                } catch (e) {
+                    console.error(e);
+                    const el = document.getElementById("registrationTableBody");
+                    if (el) {
+                        el.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-danger text-center">
+                        Lỗi: ${e.message}
+                    </td>
+                </tr>`;
                     }
-                });
-            }
-        });
-    </script>
-
-    <script>
-        const EXAM_API_URL = "/api/exams/list";
-        const EXAM_ROOM_API_URL = "/api/exam-rooms/list";
-        const STUDENT_API_URL = "/api/students/list";
-        const REGISTRATION_API_URL = "/api/exam-registrations";
-        const REGISTRATION_PAGE_SIZE = 10;
-        let examsList = [];
-        let examRoomsList = [];
-        let studentsList = [];
-        let registrationItems = [];
-        let registrationCurrentPage = 1;
-
-        async function loadLookupData() {
-            try {
-                const [examsRes, roomsRes, studentsRes] = await Promise.all([
-                    fetch(EXAM_API_URL),
-                    fetch(EXAM_ROOM_API_URL),
-                    fetch(STUDENT_API_URL)
-                ]);
-                examsList = await examsRes.json();
-                examRoomsList = await roomsRes.json();
-                studentsList = await studentsRes.json();
-                populateSelects();
-            } catch (error) {
-                console.error("Load lookup data error:", error);
-            }
-        }
-
-        function populateSelects() {
-            const examSelect = document.getElementById("examId");
-            const roomSelect = document.getElementById("examRoomId");
-            const studentSelect = document.getElementById("studentId");
-            if (!examSelect || !roomSelect || !studentSelect) return;
-            
-            examSelect.innerHTML = '<option value="">-- Chọn Kỳ Thi --</option>';
-            roomSelect.innerHTML = '<option value="">-- Chọn Phòng Thi --</option>';
-            studentSelect.innerHTML = '<option value="">-- Chọn Sinh Viên --</option>';
-            
-            examsList.forEach(e => {
-                examSelect.innerHTML += `<option value="${e.id}">${e.examName || e.name || e.id}</option>`;
-            });
-            examRoomsList.forEach(r => {
-                roomSelect.innerHTML += `<option value="${r.id}">${r.roomName || r.name || r.id}</option>`;
-            });
-            studentsList.forEach(s => {
-                studentSelect.innerHTML += `<option value="${s.id}">${s.fullName || s.name || s.code || s.id}</option>`;
-            });
-        }
-
-        function getExamName(examId) {
-            if (!examId) return "";
-            if (!Array.isArray(examsList) || examsList.length === 0) return String(examId).substring(0, 8);
-            const exam = examsList.find(e => String(e.id) === String(examId));
-            return exam ? (exam.examName || exam.name || String(examId).substring(0, 8)) : String(examId).substring(0, 8);
-        }
-
-        function getExamRoomName(roomId) {
-            if (!roomId) return "";
-            if (!Array.isArray(examRoomsList) || examRoomsList.length === 0) return String(roomId).substring(0, 8);
-            const room = examRoomsList.find(r => String(r.id) === String(roomId));
-            return room ? (room.roomName || room.name || String(roomId).substring(0, 8)) : String(roomId).substring(0, 8);
-        }
-
-        function getStudentName(studentId) {
-            if (!studentId) return "";
-            if (!Array.isArray(studentsList) || studentsList.length === 0) return String(studentId).substring(0, 8);
-            const student = studentsList.find(s => String(s.id) === String(studentId));
-            return student ? (student.fullName || student.name || student.code || String(studentId).substring(0, 8)) : String(studentId).substring(0, 8);
-        }
-
-        async function loadRegistrations() {
-            try {
-                const res = await fetch(REGISTRATION_API_URL);
-                if (!res.ok) throw new Error("Load failed");
-                const data = await res.json();
-                registrationItems = Array.isArray(data) ? data : [];
-                registrationCurrentPage = 1;
-                if (examsList.length === 0 || examRoomsList.length === 0 || studentsList.length === 0) {
-                    await loadLookupData();
                 }
-                renderRegistrationTable();
-            } catch (error) {
-                console.error("Load registrations error:", error);
             }
-        }
 
-        function renderRegistrationTable() {
-            const pageItems = AdminPagination.paginate(registrationItems, registrationCurrentPage, REGISTRATION_PAGE_SIZE);
-            let html = "";
-            pageItems.forEach((registration) => {
+            /* ---------------- RENDER ---------------- */
+            function renderTable() {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const pageItems = registrationItems.slice(start, start + PAGE_SIZE);
+
+                let html = "";
+
+                pageItems.forEach(r => {
                     html += `
-                        <tr>
-                            <td>${getExamName(registration.examId)}</td>
-                            <td>${getExamRoomName(registration.examRoomId)}</td>
-                            <td>${getStudentName(registration.studentId)}</td>
-                            <td>${registration.rollNumber || ""}</td>
-                            <td>
-                                <span class="badge ${registration.isActive ? "text-bg-success" : "text-bg-danger"}">
-                                    ${registration.isActive ? "Hoạt động" : "Vô hiệu"}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick='editRegistration(${JSON.stringify(registration)})'>
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRegistration('${registration.id}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            document.getElementById("registrationTableBody").innerHTML = html;
-            AdminPagination.render("registrationPagination", registrationItems.length, registrationCurrentPage, REGISTRATION_PAGE_SIZE, (nextPage) => {
-                registrationCurrentPage = nextPage;
-                renderRegistrationTable();
-            });
-        }
+        <tr>
+            <td>${escapeHtml(r.examId)}</td>
+            <td>${escapeHtml(r.examRoomId)}</td>
+            <td>${escapeHtml(r.studentId)}</td>
+            <td>${escapeHtml(r.rollNumber)}</td>
+            <td>
+                <span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">
+                    ${r.isActive ? 'Hoạt động' : 'Vô hiệu'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-warning btn-sm"
+                        onclick="editRegistration('${r.id}')">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
 
-        function openRegistrationModal() {
-            document.getElementById("registrationModalTitle").innerText = "Thêm Đăng Ký Thi";
-            document.getElementById("registrationId").value = "";
-            document.getElementById("registrationForm").reset();
-            document.getElementById("isActive").checked = true;
-            $("#registrationModal").modal("show");
-        }
-
-        function editRegistration(registration) {
-            document.getElementById("registrationModalTitle").innerText = "Sửa Đăng Ký Thi";
-            document.getElementById("registrationId").value = registration.id || "";
-            document.getElementById("examId").value = registration.examId || "";
-            document.getElementById("examRoomId").value = registration.examRoomId || "";
-            document.getElementById("studentId").value = registration.studentId || "";
-            document.getElementById("rollNumber").value = registration.rollNumber || "";
-            document.getElementById("isActive").checked = !!registration.isActive;
-            $("#registrationModal").modal("show");
-        }
-
-        async function saveRegistration() {
-            const id = document.getElementById("registrationId").value;
-            const payload = {
-                examId: document.getElementById("examId").value.trim(),
-                examRoomId: document.getElementById("examRoomId").value.trim(),
-                studentId: document.getElementById("studentId").value.trim(),
-                rollNumber: document.getElementById("rollNumber").value.trim(),
-                isActive: document.getElementById("isActive").checked
-            };
-
-            const method = id ? "PUT" : "POST";
-            const url = id ? `${REGISTRATION_API_URL}/${id}` : REGISTRATION_API_URL;
-
-            try {
-                const res = await fetch(url, {
-                    method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
+                <button class="btn btn-danger btn-sm"
+                        onclick="deleteRegistration('${r.id}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>`;
                 });
 
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    let errorMsg = "Lưu đăng ký thi thất bại.";
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        errorMsg = errorJson.message || errorJson.error || errorJson.cause || errorText;
-                    } catch (e) {
-                        errorMsg = errorText;
-                    }
-                    alert("Lỗi: " + errorMsg);
-                    throw new Error(errorText);
+                document.getElementById("registrationTableBody").innerHTML =
+                    html || `<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>`;
+
+                renderPagination();
+            }
+
+            /* ---------------- PAGINATION ---------------- */
+            function renderPagination() {
+                const totalPages = Math.ceil(registrationItems.length / PAGE_SIZE);
+                const div = document.getElementById("registrationPagination");
+
+                if (!div) return;
+
+                if (totalPages <= 1) {
+                    div.innerHTML = "";
+                    return;
                 }
 
-                $("#registrationModal").modal("hide");
-                loadRegistrations();
-            } catch (error) {
-                console.error("Save registration error:", error);
-            }
-        }
+                let html = `<ul class="pagination pagination-sm">`;
 
-        async function deleteRegistration(id) {
-            if (!confirm("Bạn có chắc muốn xóa đăng ký này?")) {
-                return;
-            }
-            try {
-                const res = await fetch(`${REGISTRATION_API_URL}/${id}`, { method: "DELETE" });
-                if (!res.ok) throw new Error("Delete failed");
-                loadRegistrations();
-            } catch (error) {
-                console.error("Delete registration error:", error);
-            }
-        }
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `
+        <li class="page-item ${i === currentPage ? 'active' : ''}">
+            <button class="page-link" onclick="goToPage(${i})">${i}</button>
+        </li>`;
+                }
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            await loadLookupData();
-            await loadRegistrations();
-        });
-    </script>
-</th:block>
+                html += `</ul>`;
+                div.innerHTML = html;
+            }
+
+            function goToPage(p) {
+                currentPage = p;
+                renderTable();
+            }
+
+            /* ---------------- MODAL ---------------- */
+            function openRegistrationModal() {
+                document.getElementById("modalTitle").innerText = "Thêm Đăng Ký Thi";
+                document.getElementById("registrationForm").reset();
+                document.getElementById("registrationId").value = "";
+                document.getElementById("isActive").checked = true;
+
+                showModal();
+            }
+
+            async function editRegistration(id) {
+                const item = registrationItems.find(x => x.id == id);
+                if (!item) return;
+
+                document.getElementById("modalTitle").innerText = "Chỉnh Sửa";
+                document.getElementById("registrationId").value = item.id;
+                document.getElementById("examId").value = item.examId || "";
+                document.getElementById("examRoomId").value = item.examRoomId || "";
+                document.getElementById("studentId").value = item.studentId || "";
+                document.getElementById("rollNumber").value = item.rollNumber || "";
+                document.getElementById("isActive").checked = !!item.isActive;
+
+                showModal();
+            }
+
+            function showModal() {
+                const el = document.getElementById("registrationModal");
+                if (!el) return;
+
+                const modal = bootstrap.Modal.getOrCreateInstance(el);
+                modal.show();
+            }
+
+            /* ---------------- SAVE ---------------- */
+            async function saveRegistration() {
+                const id = document.getElementById("registrationId").value;
+
+                const body = {
+                    examId: document.getElementById("examId").value,
+                    examRoomId: document.getElementById("examRoomId").value,
+                    studentId: document.getElementById("studentId").value,
+                    rollNumber: document.getElementById("rollNumber").value,
+                    isActive: document.getElementById("isActive").checked
+                };
+
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                const method = id ? "PUT" : "POST";
+
+                try {
+                    const res = await fetch(url, {
+                        method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body)
+                    });
+
+                    if (!res.ok) throw new Error("Save failed");
+
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("registrationModal")
+                    )?.hide();
+
+                    loadRegistrations();
+
+                } catch (e) {
+                    alert(e.message);
+                }
+            }
+
+            /* ---------------- DELETE ---------------- */
+            async function deleteRegistration(id) {
+                if (!confirm("Xóa đăng ký này?")) return;
+
+                await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                loadRegistrations();
+            }
+
+            /* ---------------- UTIL ---------------- */
+            function escapeHtml(str) {
+                if (!str) return "";
+                return String(str)
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+            }
+
+            document.addEventListener("DOMContentLoaded", loadRegistrations);
+        </script>
+    </th:block>
+
 </body>
+
 </html>

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.n1.model.entity.RolePermission;
+import com.example.demo.n1.model.entity.RolePermissionId;
 import com.example.demo.n1.service.RolePermissionService;
 
 @RestController
@@ -51,5 +52,12 @@ public class RolePermissionApiController {
             @RequestParam UUID roleId,
             @RequestParam UUID permissionId) {
         service.removePermission(roleId, permissionId);
+    }
+
+    // Xóa theo id
+    @DeleteMapping("/{roleId}/{permissionId}")
+    public void delete(@PathVariable UUID roleId, @PathVariable UUID permissionId) {
+        RolePermissionId id = new RolePermissionId(roleId, permissionId);
+        service.deleteById(id);
     }
 }

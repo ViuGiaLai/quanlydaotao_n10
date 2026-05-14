@@ -44,4 +44,14 @@ public class RoleApiController {
                               @PathVariable UUID permId) {
         return roleService.addPermission(roleId, permId);
     }
+
+    @PostMapping("/{id}")
+    public Role update(@PathVariable UUID id, @RequestBody Role role) {
+        return roleService.updateRole(id, role);
+    }
+
+    @PostMapping("/{id}/delete")
+    public void delete(@PathVariable UUID id) {
+        roleService.deleteRole(id);
+    }
 }

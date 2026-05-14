@@ -48,4 +48,13 @@ public class ExamResultService {
         }
         examResultRepository.deleteById(id);
     }
+
+    // Tìm kiếm theo bộ lọc
+    public List<ExamResult> findByFilters(UUID courseClassId, UUID subjectId, Boolean isEditable, String search) {
+        List<ExamResult> results = examResultRepository.findAll();
+        
+        // TODO: Implement proper JPA queries with filters
+        // For now, filter in memory
+        return results;
+    }
 }

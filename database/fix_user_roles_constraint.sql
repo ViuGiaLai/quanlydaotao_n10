@@ -1,6 +1,6 @@
--- =============================================
+-- =====
 -- Fix user_roles table - Add unique constraint
--- =============================================
+-- =====
 
 -- First, clean up existing duplicates
 ;WITH DuplicateCTE AS (

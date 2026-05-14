@@ -4,53 +4,337 @@
       layout:decorate="~{admin/layout}">
 <head>
     <title>Exam Types</title>
+    <style>
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-modal.show {
+            display: flex;
+        }
+        .custom-modal-dialog {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .custom-modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-modal-body {
+            padding: 20px;
+        }
+        .custom-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
     <div layout:fragment="content">
         <th:block th:with="activePage='exam-types'"></th:block>
         
-            <div class="app-content">
-                <!--begin::Container-->
-                <div class="container-fluid">
-                    <!-- START: Added Content -->
-                    <div class="row mb-3">
-                        <div class="col-12 text-end">
-                            <button class="btn btn-primary" onclick="openAddModal()">
-                                <i class="bi bi-plus-lg"></i> Thêm Loại Kỳ Thi
-                            </button>
-                        </div>
+        <div class="app-content">
+            <div class="container-fluid">
+                <div class="row mb-3">
+                    <div class="col-12 text-end">
+                        <button type="button" class="btn btn-primary" onclick="showAddModal()">
+                            <i class="bi bi-plus-lg"></i> Thêm Loại Kỳ Thi
+                        </button>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">Danh Sách Loại Kỳ Thi</h3>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped align-middle">
-                                            <thead>
-                                                <tr>
-                                                    <th>Tên Loại Kỳ Thi</th>
-                                                    <th>Mô Tả</th>
-                                                    <th>Trạng Thái</th>
-                                                    <th>Hành Động</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="examTypeTable">
-                                                <!-- Data will be loaded here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Danh Sách Loại Kỳ Thi</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên Loại Kỳ Thi</th>
+                                                <th>Mô Tả</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="examTypeTable"></tbody>
+                                    </table>
+                                    <div id="examTypePagination" class="d-flex justify-content-center mt-3 mb-3"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- END: Added Content -->
                 </div>
-                <!--end::Container-->
             </div>
-            
+        </div>
+
+        <!-- Custom Modal - Simple CSS/JS -->
+        <div class="custom-modal" id="examTypeModal">
+            <div class="custom-modal-dialog">
+                <div class="custom-modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thêm Loại Kỳ Thi</h5>
+                    <button type="button" class="btn-close" onclick="closeModal()"></button>
+                </div>
+                <div class="custom-modal-body">
+                    <form id="examTypeForm">
+                        <input type="hidden" id="examTypeId">
+                        <div class="mb-3">
+                            <label for="typeName" class="form-label">Tên Loại Kỳ Thi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="typeName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô Tả</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">Kích hoạt</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="custom-modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveExamType()">Lưu</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <th:block layout:fragment="script">
+        <script>
+            const API_URL = "/api/exam-types";
+            const PAGE_SIZE = 10;
+            let examTypeItems = [];
+            let currentPage = 1;
+
+            // Custom Modal Functions
+            function showModal() {
+                var modal = document.getElementById("examTypeModal");
+                if (modal) modal.classList.add("show");
+            }
+
+            function closeModal() {
+                var modal = document.getElementById("examTypeModal");
+                if (modal) modal.classList.remove("show");
+            }
+
+            // Close modal on outside click
+            document.addEventListener("click", function(e) {
+                var modal = document.getElementById("examTypeModal");
+                if (e.target === modal) closeModal();
+            });
+
+            // Close modal on Escape key
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape") closeModal();
+            });
+
+            async function loadExamTypes() {
+                try {
+                    const res = await fetch(API_URL);
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    
+                    const data = await res.json();
+                    examTypeItems = Array.isArray(data) ? data : [];
+                    
+                    currentPage = 1;
+                    renderTable();
+                } catch (e) {
+                    console.error("Load error:", e);
+                    const tbl = document.getElementById("examTypeTable");
+                    if (tbl) tbl.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Lỗi: ' + e.message + '</td></tr>';
+                }
+            }
+
+            function renderTable() {
+                const tbl = document.getElementById("examTypeTable");
+                if (!tbl) return;
+
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const pageItems = examTypeItems.slice(start, start + PAGE_SIZE);
+
+                if (pageItems.length === 0) {
+                    tbl.innerHTML = '<tr><td colspan="4" class="text-center">Không có dữ liệu</td></tr>';
+                    return;
+                }
+
+                let html = "";
+                pageItems.forEach(function(t, idx) {
+                    const globalIdx = start + idx;
+                    const name = t.name || '';
+                    const desc = t.description || '';
+                    const active = t.isActive === true;
+                    const badge = active 
+                        ? '<span class="badge text-bg-success">Hoạt động</span>' 
+                        : '<span class="badge text-bg-danger">Vô hiệu</span>';
+                    
+                    html += '<tr>';
+                    html += '<td>' + escapeHtml(name) + '</td>';
+                    html += '<td>' + escapeHtml(desc) + '</td>';
+                    html += '<td>' + badge + '</td>';
+                    html += '<td>';
+                    html += '<button class="btn btn-warning btn-sm me-1" onclick="editItem(' + globalIdx + ')">Sửa</button>';
+                    html += '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + globalIdx + ')">Xóa</button>';
+                    html += '</td>';
+                    html += '</tr>';
+                });
+
+                tbl.innerHTML = html;
+
+                const totalPages = Math.ceil(examTypeItems.length / PAGE_SIZE);
+                const pagDiv = document.getElementById("examTypePagination");
+                if (pagDiv && totalPages > 1) {
+                    let phtml = "";
+                    for (let i = 1; i <= totalPages; i++) {
+                        phtml += '<button class="btn btn-sm ' + (i === currentPage ? 'btn-primary' : 'btn-outline-primary') + ' me-1" onclick="goToPage(' + i + ')">' + i + '</button>';
+                    }
+                    pagDiv.innerHTML = phtml;
+                }
+            }
+
+            function goToPage(page) {
+                currentPage = page;
+                renderTable();
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function showAddModal() {
+                var titleEl = document.getElementById("modalTitle");
+                var idEl = document.getElementById("examTypeId");
+                var formEl = document.getElementById("examTypeForm");
+                var activeEl = document.getElementById("isActive");
+
+                if (titleEl) titleEl.innerText = "Thêm Loại Kỳ Thi";
+                if (idEl) idEl.value = "";
+                if (formEl) formEl.reset();
+                if (activeEl) activeEl.checked = true;
+
+                showModal();
+            }
+
+            function editItem(index) {
+                var item = examTypeItems[index];
+                if (!item) return;
+
+                var titleEl = document.getElementById("modalTitle");
+                var idEl = document.getElementById("examTypeId");
+                var nameEl = document.getElementById("typeName");
+                var descEl = document.getElementById("description");
+                var activeEl = document.getElementById("isActive");
+
+                if (titleEl) titleEl.innerText = "Chỉnh Sửa Loại Kỳ Thi";
+                if (idEl) idEl.value = item.id || "";
+                if (nameEl) nameEl.value = item.name || "";
+                if (descEl) descEl.value = item.description || "";
+                if (activeEl) activeEl.checked = item.isActive === true;
+
+                showModal();
+            }
+
+            function deleteItem(index) {
+                var item = examTypeItems[index];
+                if (!item || !item.id) return;
+                
+                if (!confirm("Bạn có chắc muốn xóa?")) return;
+
+                doDelete(item.id);
+            }
+
+            async function saveExamType() {
+                var idEl = document.getElementById("examTypeId");
+                var nameEl = document.getElementById("typeName");
+                var descEl = document.getElementById("description");
+                var activeEl = document.getElementById("isActive");
+
+                if (!idEl || !nameEl || !descEl || !activeEl) {
+                    alert("Lỗi form");
+                    return;
+                }
+
+                var id = idEl.value;
+                var name = nameEl.value.trim();
+
+                if (!name) {
+                    alert("Tên không được để trống!");
+                    nameEl.focus();
+                    return;
+                }
+
+                var data = {
+                    name: name,
+                    description: descEl.value.trim(),
+                    isActive: activeEl.checked
+                };
+
+                var url = API_URL;
+                var method = "POST";
+                
+                if (id) {
+                    url = API_URL + "/" + id;
+                    method = "PUT";
+                }
+
+                try {
+                    var res = await fetch(url, {
+                        method: method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!res.ok) throw new Error("Save failed");
+
+                    closeModal();
+                    loadExamTypes();
+
+                } catch (e) {
+                    console.error("Save error:", e);
+                    alert("Lỗi: " + e.message);
+                }
+            }
+
+            async function doDelete(id) {
+                try {
+                    var res = await fetch(API_URL + "/" + id, {
+                        method: "DELETE"
+                    });
+
+                    if (!res.ok) throw new Error("Delete failed");
+
+                    loadExamTypes();
+
+                } catch (e) {
+                    console.error("Delete error:", e);
+                    alert("Xóa thất bại: " + e.message);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", loadExamTypes);
+        </script>
+    </th:block>
 </body>
 </html>

@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.n1.model.entity.RolePermission;
+import com.example.demo.n1.model.entity.RolePermissionId;
 import com.example.demo.n1.repository.RolePermissionRepository;
 
 @Service
@@ -32,6 +33,10 @@ public class RolePermissionService {
 
     public List<RolePermission> getPermissionsByRoleId(UUID roleId) {
         return repository.findByRoleId(roleId);
+    }
+
+    public void deleteById(RolePermissionId id) {
+        repository.deleteById(id);
     }
 
 }

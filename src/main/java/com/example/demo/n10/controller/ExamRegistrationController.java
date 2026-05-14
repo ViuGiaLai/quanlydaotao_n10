@@ -12,6 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/exam-registrations")
+@CrossOrigin("*")
 public class ExamRegistrationController {
     
     private static final Logger logger = LoggerFactory.getLogger(ExamRegistrationController.class);
