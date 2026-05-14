@@ -1,273 +1,257 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>User Roles</title>
 </head>
 <body>
-    <div layout:fragment="content">
-        <th:block th:with="activePage='user-roles'"></th:block>
-        
-            <div class="app-content">
-                <div class="container-fluid">
-                  <div class="row mb-3">
-                      <div class="col-12 text-end">
-                          <button class="btn btn-primary" onclick="openAddModal()">
-                              <i class="bi bi-plus-lg"></i> Gán Vai Trò Mới
-                          </button>
-                      </div>
-                  </div>
-                  <div class="row">
-                      <div class="col-12">
-                          <div class="card">
-                              <div class="card-header">
-                                  <h3 class="card-title">Danh Sách Gán Vai Trò</h3>
-                              </div>
-                              <div class="card-body p-0">
-                                  <div class="table-responsive">
-                                      <table class="table table-striped align-middle">
-                                          <thead>
-                                              <tr>
-                                                  <th>User ID</th>
-                                                  <th>Role ID</th>
-                                                  <th>Trạng Thái</th>
-                                                  <th>Hành Động</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody id="userRoleTable"></tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+    <div th:replace="~{admin/layout :: sidebar}"></div>
+    <div th:replace="~{admin/layout :: modal-container}"></div>
+    <div th:replace="~{admin/layout :: main-content}">
+        <div th:fragment="page-content" class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-12 text-end">
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <i class="bi bi-plus-lg"></i> Gán Vai Trò Mới
+                    </button>
                 </div>
-<<<<<<< HEAD
-              </div>
-            
-    </div>
-=======
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Danh Sách Gán Vai Trò</h3>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Danh Sách Gán Vai Trò</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Vai Trò</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Hành Động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userRoleTable"></tbody>
+                                </table>
                             </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-striped align-middle mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Vai Trò</th>
-                                                <th>Trạng Thái</th>
-                                                <th>Hành Động</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="userRoleTable"></tbody>
-                                    </table>
-                                </div>
-                                <div class="p-3 border-top" id="userRolePagination"></div>
-                            </div>
+                            <div class="p-3 border-top" id="userRolePagination"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="modal fade" id="userRoleModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="userRoleModalTitle">Gán Vai Trò Mới</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="userRoleForm">
-                            <input type="hidden" id="userRoleId">
-                            <div class="mb-3">
-                                <label for="userId" class="form-label">User</label>
-                                <select class="form-select" id="userId" required>
-                                    <option value="">-- Chọn User --</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="roleId" class="form-label">Vai Trò</label>
-                                <select class="form-select" id="roleId" required>
-                                    <option value="">-- Chọn Vai Trò --</option>
-                                </select>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="userRoleIsActive" checked>
-                                <label class="form-check-label" for="userRoleIsActive">Kích hoạt</label>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="button" class="btn btn-primary" onclick="saveUserRole()">Lưu</button>
-                    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="userRoleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userRoleModalTitle">Gán Vai Trò Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userRoleForm">
+                        <input type="hidden" id="userRoleId">
+                        <div class="mb-3">
+                            <label for="userId" class="form-label">User</label>
+                            <select class="form-select" id="userId" required>
+                                <option value="">-- Chọn User --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="roleId" class="form-label">Vai Trò</label>
+                            <select class="form-select" id="roleId" required>
+                                <option value="">-- Chọn Vai Trò --</option>
+                            </select>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="userRoleIsActive" checked>
+                            <label class="form-check-label">Kích hoạt</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUserRole()">Lưu</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <th:block layout:fragment="script">
-        <script>
-            const USER_API_URL = "/api/users/list";
-            const ROLE_API_URL = "/api/roles/list";
-            const USER_ROLE_API_URL = "/api/user-roles";
-            const USER_ROLE_PAGE_SIZE = 10;
-            let usersList = [];
-            let rolesList = [];
-            let userRoleItems = [];
-            let userRoleCurrentPage = 1;
+    <script>
+    const USER_API_URL = "/api/users/list";
+    const ROLE_API_URL = "/api/roles/list";
+    const USER_ROLE_API_URL = "/api/user-roles";
+    const USER_ROLE_PAGE_SIZE = 10;
+    let usersList = [];
+    let rolesList = [];
+    let userRoleItems = [];
+    let userRoleCurrentPage = 1;
 
-            async function loadUsersAndRoles() {
-                try {
-                    const [usersRes, rolesRes] = await Promise.all([
-                        fetch(USER_API_URL),
-                        fetch(ROLE_API_URL)
-                    ]);
-                    usersList = await usersRes.json();
-                    rolesList = await rolesRes.json();
-                    populateSelects();
-                } catch (error) {
-                    console.error("Load users/roles error:", error);
-                }
+    const AdminPagination = {
+        paginate: function(items, page, pageSize) {
+            const start = (page - 1) * pageSize;
+            return items.slice(start, start + pageSize);
+        },
+        render: function(elementId, totalItems, currentPage, pageSize, callback) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (totalPages <= 1) return;
+            let html = '<nav><ul class="pagination mb-0">';
+            for (let i = 1; i <= totalPages; i++) {
+                html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">';
+                html += '<a class="page-link" href="#">' + i + '</a></li>';
             }
-
-            function populateSelects() {
-                const userSelect = document.getElementById("userId");
-                const roleSelect = document.getElementById("roleId");
-                if (!userSelect || !roleSelect) return;
-                userSelect.innerHTML = '<option value="">-- Chọn User --</option>';
-                roleSelect.innerHTML = '<option value="">-- Chọn Vai Trò --</option>';
-                usersList.forEach(u => {
-                    userSelect.innerHTML += `<option value="${u.id}">${u.username}</option>`;
-                });
-                rolesList.forEach(r => {
-                    roleSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+            html += '</ul></nav>';
+            const container = document.getElementById(elementId);
+            if (container) {
+                container.innerHTML = html;
+                container.querySelectorAll('.page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        callback(parseInt(e.target.textContent));
+                    });
                 });
             }
+        }
+    };
 
-            async function loadUserRoles() {
-                try {
-                    const res = await fetch(USER_ROLE_API_URL);
-                    const data = await res.json();
-                    userRoleItems = Array.isArray(data) ? data : [];
-                    userRoleCurrentPage = 1;
-                    // Wait for usersList and rolesList to be loaded
-                    if (usersList.length === 0 || rolesList.length === 0) {
-                        await loadUsersAndRoles();
-                    }
-                    renderUserRoleTable();
-                } catch (error) {
-                    console.error("Load user roles error:", error);
-                    alert("Không thể tải user roles.");
-                }
-            }
+    async function loadUsersAndRoles() {
+        try {
+            const [usersRes, rolesRes] = await Promise.all([
+                fetch(USER_API_URL),
+                fetch(ROLE_API_URL)
+            ]);
+            usersList = await usersRes.json();
+            rolesList = await rolesRes.json();
+            populateSelects();
+        } catch (error) {
+            console.error("Load users/roles error:", error);
+        }
+    }
 
-            function getUserName(userId) {
-                if (!userId) return "";
-                if (!Array.isArray(usersList) || usersList.length === 0) return String(userId).substring(0, 8);
-                const user = usersList.find(u => String(u.id) === String(userId));
-                return user ? user.username : String(userId).substring(0, 8);
-            }
+    function populateSelects() {
+        const userSelect = document.getElementById("userId");
+        const roleSelect = document.getElementById("roleId");
+        if (!userSelect || !roleSelect) return;
+        userSelect.innerHTML = '<option value="">-- Chọn User --</option>';
+        roleSelect.innerHTML = '<option value="">-- Chọn Vai Trò --</option>';
+        usersList.forEach(u => {
+            userSelect.innerHTML += '<option value="' + u.id + '">' + u.username + '</option>';
+        });
+        rolesList.forEach(r => {
+            roleSelect.innerHTML += '<option value="' + r.id + '">' + r.name + '</option>';
+        });
+    }
 
-            function getRoleName(roleId) {
-                if (!roleId) return "";
-                if (!Array.isArray(rolesList) || rolesList.length === 0) return String(roleId).substring(0, 8);
-                const role = rolesList.find(r => String(r.id) === String(roleId));
-                return role ? role.name : String(roleId).substring(0, 8);
-            }
+    function getUserName(userId) {
+        if (!userId) return "";
+        if (!Array.isArray(usersList) || usersList.length === 0) return String(userId).substring(0, 8);
+        const user = usersList.find(u => String(u.id) === String(userId));
+        return user ? user.username : String(userId).substring(0, 8);
+    }
 
-            function renderUserRoleTable() {
-                    const pageItems = AdminPagination.paginate(userRoleItems, userRoleCurrentPage, USER_ROLE_PAGE_SIZE);
-                    let html = "";
-                    pageItems.forEach((item) => {
-                        html += `
-                            <tr>
-                                <td>${getUserName(item.userId)}</td>
-                                <td>${getRoleName(item.roleId)}</td>
-                                <td><span class="badge ${item.isActive ? "text-bg-success" : "text-bg-danger"}">${item.isActive ? "Hoạt động" : "Vô hiệu"}</span></td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm" onclick='editUserRole(${JSON.stringify(item)})'><i class="bi bi-pencil-square"></i></button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteUserRole('${item.id}')"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    document.getElementById("userRoleTable").innerHTML = html;
-                    AdminPagination.render("userRolePagination", userRoleItems.length, userRoleCurrentPage, USER_ROLE_PAGE_SIZE, (nextPage) => {
-                        userRoleCurrentPage = nextPage;
-                        renderUserRoleTable();
-                    });
-            }
+    function getRoleName(roleId) {
+        if (!roleId) return "";
+        if (!Array.isArray(rolesList) || rolesList.length === 0) return String(roleId).substring(0, 8);
+        const role = rolesList.find(r => String(r.id) === String(roleId));
+        return role ? role.name : String(roleId).substring(0, 8);
+    }
 
-            function openUserRoleModal() {
-                document.getElementById("userRoleModalTitle").innerText = "Gán Vai Trò Mới";
-                document.getElementById("userRoleId").value = "";
-                document.getElementById("userRoleForm").reset();
-                document.getElementById("userRoleIsActive").checked = true;
-                $("#userRoleModal").modal("show");
-            }
-
-            function editUserRole(item) {
-                document.getElementById("userRoleModalTitle").innerText = "Sửa Gán Vai Trò";
-                document.getElementById("userRoleId").value = item.id || "";
-                document.getElementById("userId").value = item.userId || "";
-                document.getElementById("roleId").value = item.roleId || "";
-                document.getElementById("userRoleIsActive").checked = !!item.isActive;
-                $("#userRoleModal").modal("show");
-            }
-
-            async function saveUserRole() {
-                const id = document.getElementById("userRoleId").value;
-                const payload = {
-                    userId: document.getElementById("userId").value.trim(),
-                    roleId: document.getElementById("roleId").value.trim(),
-                    isActive: document.getElementById("userRoleIsActive").checked
-                };
-                const method = id ? "PUT" : "POST";
-                const url = id ? `${USER_ROLE_API_URL}/${id}` : USER_ROLE_API_URL;
-                try {
-                    const res = await fetch(url, {
-                        method,
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.message || "Save failed");
-                    }
-                    $("#userRoleModal").modal("hide");
-                    loadUserRoles();
-                } catch (error) {
-                    console.error("Save user role error:", error);
-                    alert(error.message || "Lưu user role thất bại.");
-                }
-            }
-
-            async function deleteUserRole(id) {
-                if (!confirm("Bạn có chắc muốn xóa user role này?")) return;
-                try {
-                    const res = await fetch(`${USER_ROLE_API_URL}/${id}`, { method: "DELETE" });
-                    if (!res.ok) throw new Error("Delete failed");
-                    loadUserRoles();
-                } catch (error) {
-                    console.error("Delete user role error:", error);
-                    alert("Xóa user role thất bại.");
-                }
-            }
-
-            document.addEventListener("DOMContentLoaded", async () => {
+    async function loadUserRoles() {
+        try {
+            const res = await fetch(USER_ROLE_API_URL);
+            const data = await res.json();
+            userRoleItems = Array.isArray(data) ? data : [];
+            userRoleCurrentPage = 1;
+            if (usersList.length === 0 || rolesList.length === 0) {
                 await loadUsersAndRoles();
-                await loadUserRoles();
+            }
+            renderUserRoleTable();
+        } catch (error) {
+            console.error("Load user roles error:", error);
+            alert("Không thể tải user roles.");
+        }
+    }
+
+    function renderUserRoleTable() {
+        const pageItems = AdminPagination.paginate(userRoleItems, userRoleCurrentPage, USER_ROLE_PAGE_SIZE);
+        let html = "";
+        pageItems.forEach(function(item) {
+            html += '<tr>';
+            html += '<td>' + getUserName(item.userId) + '</td>';
+            html += '<td>' + getRoleName(item.roleId) + '</td>';
+            html += '<td><span class="badge ' + (item.isActive ? 'bg-success' : 'bg-danger') + '">' + (item.isActive ? 'Hoạt động' : 'Vô hiệu') + '</span></td>';
+            html += '<td>';
+            html += '<button class="btn btn-warning btn-sm" onclick=\'editUserRole(' + JSON.stringify(item) + ')\'><i class="bi bi-pencil-square"></i></button>';
+            html += '<button class="btn btn-danger btn-sm" onclick="deleteUserRole(\'' + item.id + '\')"><i class="bi bi-trash"></i></button>';
+            html += '</td></tr>';
+        });
+        document.getElementById("userRoleTable").innerHTML = html;
+        AdminPagination.render("userRolePagination", userRoleItems.length, userRoleCurrentPage, USER_ROLE_PAGE_SIZE, function(nextPage) {
+            userRoleCurrentPage = nextPage;
+            renderUserRoleTable();
+        });
+    }
+
+    function openAddModal() {
+        document.getElementById("userRoleModalTitle").innerText = "Gán Vai Trò Mới";
+        document.getElementById("userRoleId").value = "";
+        document.getElementById("userRoleForm").reset();
+        document.getElementById("userRoleIsActive").checked = true;
+        new bootstrap.Modal(document.getElementById("userRoleModal")).show();
+    }
+
+    function editUserRole(item) {
+        document.getElementById("userRoleModalTitle").innerText = "Sửa Gán Vai Trò";
+        document.getElementById("userRoleId").value = item.id || "";
+        document.getElementById("userId").value = item.userId || "";
+        document.getElementById("roleId").value = item.roleId || "";
+        document.getElementById("userRoleIsActive").checked = !!item.isActive;
+        new bootstrap.Modal(document.getElementById("userRoleModal")).show();
+    }
+
+    async function saveUserRole() {
+        const id = document.getElementById("userRoleId").value;
+        const payload = {
+            userId: document.getElementById("userId").value.trim(),
+            roleId: document.getElementById("roleId").value.trim(),
+            isActive: document.getElementById("userRoleIsActive").checked
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? USER_ROLE_API_URL + "/" + id : USER_ROLE_API_URL;
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
             });
-        </script>
-    </th:block>
->>>>>>> 0d2f095 (update new UI viu)
+            if (!res.ok) throw new Error("Save failed");
+            bootstrap.Modal.getInstance(document.getElementById("userRoleModal")).hide();
+            loadUserRoles();
+        } catch (error) {
+            console.error("Save user role error:", error);
+            alert("Lưu user role thất bại.");
+        }
+    }
+
+    async function deleteUserRole(id) {
+        if (!confirm("Bạn có chắc muốn xóa user role này?")) return;
+        try {
+            const res = await fetch(USER_ROLE_API_URL + "/" + id, { method: "DELETE" });
+            if (!res.ok) throw new Error("Delete failed");
+            loadUserRoles();
+        } catch (error) {
+            console.error("Delete user role error:", error);
+            alert("Xóa user role thất bại.");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async function() {
+        await loadUsersAndRoles();
+        await loadUserRoles();
+    });
+    </script>
 </body>
 </html>

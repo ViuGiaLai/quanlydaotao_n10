@@ -1,159 +1,210 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Users</title>
 </head>
 <body>
-    <div layout:fragment="content">
-        <th:block th:with="activePage='users'"></th:block>
-        
-            <div class="app-content">
-                <div class="container-fluid">
-                  <div class="row mb-3">
-                      <div class="col-12 text-end">
-                          <button class="btn btn-primary" onclick="openAddModal()">
-                              <i class="bi bi-person-plus"></i> Thêm Người Dùng
-                          </button>
-                      </div>
-                  </div>
-                  <div class="row">
-                      <div class="col-12">
-                          <div class="card">
-                              <div class="card-header">
-                                  <h3 class="card-title">Danh Sách Người Dùng</h3>
-                              </div>
-                              <div class="card-body p-0">
-                                  <div class="table-responsive">
-                                      <table class="table table-striped align-middle">
-                                          <thead>
-                                              <tr>
-                                                  <th>Username</th>
-                                                  <th>Họ Tên</th>
-                                                  <th>Email</th>
-                                                  <th>Trạng Thái</th>
-                                                  <th>Hành Động</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody id="userTable"></tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+    <div th:replace="~{admin/layout :: sidebar}"></div>
+    <div th:replace="~{admin/layout :: modal-container}"></div>
+    <div th:replace="~{admin/layout :: main-content}">
+        <div th:fragment="page-content" class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-12 text-end">
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <i class="bi bi-person-plus"></i> Thêm Người Dùng
+                    </button>
                 </div>
-              </div>
-            
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Danh Sách Người Dùng</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Họ Tên</th>
+                                            <th>Email</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Hành Động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userTable"></tbody>
+                                </table>
+                            </div>
+                            <div class="p-3 border-top" id="userPagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-<<<<<<< HEAD
-=======
 
-    <th:block layout:fragment="script">
-        <script>
-            const USER_API_URL = "/api/users";
-            const USER_PAGE_SIZE = 10;
-            let userItems = [];
-            let userCurrentPage = 1;
+    <!-- Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalTitle">Thêm Người Dùng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Điện thoại</label>
+                            <input type="text" class="form-control" id="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="avatarUrl" class="form-label">Avatar URL</label>
+                            <input type="text" class="form-control" id="avatarUrl">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUser()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            async function loadUsers() {
-                try {
-                    const res = await fetch(USER_API_URL);
-                    const data = await res.json();
-                    userItems = Array.isArray(data) ? data : [];
-                    userCurrentPage = 1;
-                    renderUserTable();
-                } catch (error) {
-                    console.error("Load users error:", error);
-                    alert("Không thể tải người dùng.");
-                }
+    <script>
+    const USER_API_URL = "/api/users";
+    const USER_PAGE_SIZE = 10;
+    let userItems = [];
+    let userCurrentPage = 1;
+
+    const AdminPagination = {
+        paginate: function(items, page, pageSize) {
+            const start = (page - 1) * pageSize;
+            return items.slice(start, start + pageSize);
+        },
+        render: function(elementId, totalItems, currentPage, pageSize, callback) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (totalPages <= 1) return;
+            let html = '<nav><ul class="pagination mb-0">';
+            for (let i = 1; i <= totalPages; i++) {
+                html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">';
+                html += '<a class="page-link" href="#">' + i + '</a></li>';
             }
-
-            function renderUserTable() {
-                    const pageItems = AdminPagination.paginate(userItems, userCurrentPage, USER_PAGE_SIZE);
-                    let html = "";
-                    pageItems.forEach((user) => {
-                        html += `
-                            <tr>
-                                <td>${user.username || ""}</td>
-                                <td>${user.email || ""}</td>
-                                <td>${user.phone || ""}</td>
-                                <td><span class="badge ${user.isActive ? "text-bg-success" : "text-bg-danger"}">${user.isActive ? "Hoạt động" : "Vô hiệu"}</span></td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm" onclick='editUser(${JSON.stringify(user)})'><i class="bi bi-pencil-square"></i></button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
+            html += '</ul></nav>';
+            const container = document.getElementById(elementId);
+            if (container) {
+                container.innerHTML = html;
+                container.querySelectorAll('.page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        callback(parseInt(e.target.textContent));
                     });
-                    document.getElementById("userTable").innerHTML = html;
-                    AdminPagination.render("userPagination", userItems.length, userCurrentPage, USER_PAGE_SIZE, (nextPage) => {
-                        userCurrentPage = nextPage;
-                        renderUserTable();
-                    });
-            }
-
-            function openUserModal() {
-                document.getElementById("userModalTitle").innerText = "Thêm Người Dùng";
-                document.getElementById("userId").value = "";
-                document.getElementById("userForm").reset();
-                $("#userModal").modal("show");
-            }
-
-            function editUser(user) {
-                document.getElementById("userModalTitle").innerText = "Sửa Người Dùng";
-                document.getElementById("userId").value = user.id || "";
-                document.getElementById("username").value = user.username || "";
-                document.getElementById("email").value = user.email || "";
-                document.getElementById("phone").value = user.phone || "";
-                document.getElementById("avatarUrl").value = user.avatarUrl || "";
-                document.getElementById("password").value = "";
-                $("#userModal").modal("show");
-            }
-
-            async function saveUser() {
-                const id = document.getElementById("userId").value;
-                const payload = new URLSearchParams({
-                    username: document.getElementById("username").value.trim(),
-                    password: document.getElementById("password").value.trim(),
-                    email: document.getElementById("email").value.trim(),
-                    phone: document.getElementById("phone").value.trim(),
-                    avatarUrl: document.getElementById("avatarUrl").value.trim()
                 });
-                const method = id ? "PUT" : "POST";
-                const url = id ? `${USER_API_URL}/${id}?${payload.toString()}` : `${USER_API_URL}?${payload.toString()}`;
-
-                try {
-                    const res = await fetch(url, { method });
-                    if (!res.ok) throw new Error("Save failed");
-                    $("#userModal").modal("hide");
-                    loadUsers();
-                } catch (error) {
-                    console.error("Save user error:", error);
-                    alert("Lưu người dùng thất bại.");
-                }
             }
+        }
+    };
 
-            async function deleteUser(id) {
-                if (!confirm("Bạn có chắc muốn xóa người dùng này?")) return;
-                try {
-                    const res = await fetch(`${USER_API_URL}/${id}`, { method: "DELETE" });
-                    if (!res.ok) {
-                        const err = await res.json();
-                        alert(err.message || "Xóa người dùng thất bại!");
-                        return;
-                    }
-                    loadUsers();
-                } catch (error) {
-                    console.error("Delete user error:", error);
-                    alert("Xóa người dùng thất bại.");
-                }
-            }
+    async function loadUsers() {
+        try {
+            const res = await fetch(USER_API_URL);
+            const data = await res.json();
+            userItems = Array.isArray(data) ? data : [];
+            userCurrentPage = 1;
+            renderUserTable();
+        } catch (error) {
+            console.error("Load users error:", error);
+            alert("Không thể tải người dùng.");
+        }
+    }
 
-            document.addEventListener("DOMContentLoaded", loadUsers);
-        </script>
-    </th:block>
->>>>>>> 0d2f095 (update new UI viu)
+    function renderUserTable() {
+        const pageItems = AdminPagination.paginate(userItems, userCurrentPage, USER_PAGE_SIZE);
+        let html = "";
+        pageItems.forEach(function(user) {
+            html += '<tr>';
+            html += '<td>' + (user.username || '') + '</td>';
+            html += '<td>' + (user.email || '') + '</td>';
+            html += '<td>' + (user.phone || '') + '</td>';
+            html += '<td><span class="badge ' + (user.isActive ? 'bg-success' : 'bg-danger') + '">' + (user.isActive ? 'Hoạt động' : 'Vô hiệu') + '</span></td>';
+            html += '<td>';
+            html += '<button class="btn btn-warning btn-sm" onclick=\'editUser(' + JSON.stringify(user) + ')\'><i class="bi bi-pencil-square"></i></button>';
+            html += '<button class="btn btn-danger btn-sm" onclick="deleteUser(\'' + user.id + '\')"><i class="bi bi-trash"></i></button>';
+            html += '</td></tr>';
+        });
+        document.getElementById("userTable").innerHTML = html;
+        AdminPagination.render("userPagination", userItems.length, userCurrentPage, USER_PAGE_SIZE, function(nextPage) {
+            userCurrentPage = nextPage;
+            renderUserTable();
+        });
+    }
+
+    function openAddModal() {
+        document.getElementById("userModalTitle").innerText = "Thêm Người Dùng";
+        document.getElementById("userId").value = "";
+        document.getElementById("userForm").reset();
+        new bootstrap.Modal(document.getElementById("userModal")).show();
+    }
+
+    function editUser(user) {
+        document.getElementById("userModalTitle").innerText = "Sửa Người Dùng";
+        document.getElementById("userId").value = user.id || "";
+        document.getElementById("username").value = user.username || "";
+        document.getElementById("email").value = user.email || "";
+        document.getElementById("phone").value = user.phone || "";
+        document.getElementById("avatarUrl").value = user.avatarUrl || "";
+        document.getElementById("password").value = "";
+        new bootstrap.Modal(document.getElementById("userModal")).show();
+    }
+
+    async function saveUser() {
+        const id = document.getElementById("userId").value;
+        const payload = new URLSearchParams({
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            avatarUrl: document.getElementById("avatarUrl").value.trim()
+        });
+        const method = id ? "PUT" : "POST";
+        const url = id ? USER_API_URL + "/" + id + "?" + payload.toString() : USER_API_URL + "?" + payload.toString();
+        try {
+            const res = await fetch(url, { method: method });
+            if (!res.ok) throw new Error("Save failed");
+            bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
+            loadUsers();
+        } catch (error) {
+            console.error("Save user error:", error);
+            alert("Lưu người dùng thất bại.");
+        }
+    }
+
+    async function deleteUser(id) {
+        if (!confirm("Bạn có chắc muốn xóa người dùng này?")) return;
+        try {
+            const res = await fetch(USER_API_URL + "/" + id, { method: "DELETE" });
+            if (!res.ok) throw new Error("Delete failed");
+            loadUsers();
+        } catch (error) {
+            console.error("Delete user error:", error);
+            alert("Xóa người dùng thất bại.");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadUsers);
+    </script>
 </body>
 </html>

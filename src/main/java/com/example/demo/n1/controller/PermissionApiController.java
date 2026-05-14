@@ -10,6 +10,10 @@ import com.example.demo.n1.model.entity.Permission;
 import com.example.demo.n1.repository.PermissionRepository;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/permissions")
@@ -30,8 +34,6 @@ public class PermissionApiController {
     public List<Permission> list() {
         return repo.findAll();
     }
-<<<<<<< HEAD
-=======
 
     @GetMapping("/list")
     public List<Permission> listAll() {
@@ -48,5 +50,4 @@ public class PermissionApiController {
     public void delete(@PathVariable UUID id) {
         repo.deleteById(id);
     }
->>>>>>> 0d2f095 (update new UI viu)
 }

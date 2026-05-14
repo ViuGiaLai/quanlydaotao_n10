@@ -59,8 +59,6 @@ public class UserService {
     public List<User> findAll() {
         return userRepo.findAll();
     }
-<<<<<<< HEAD
-=======
 
     public User updateUser(UUID id, String username, String password, String email, String phone, String avatarUrl) {
         User existing = userRepo.findById(id).orElseThrow();
@@ -81,6 +79,5 @@ public class UserService {
             userRepo.save(user);
         }
     }
->>>>>>> 0d2f095 (update new UI viu)
 }
 

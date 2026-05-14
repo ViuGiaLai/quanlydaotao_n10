@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">Hệ Thống Quản Lý Đào Tạo</title>
-    <meta name="_csrf" content="${_csrf.token}"></meta>
+    <title>Hệ Thống Quản Lý Đào Tạo</title>
+    <meta name="_csrf" th:content="${_csrf.token}">
     
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -27,10 +27,12 @@
             font-family: 'Source Sans Pro', sans-serif;
             background-color: #f4f6f9;
             overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
         
         /* Sidebar Styles */
-        #sidebar {
+        .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
             position: fixed;
@@ -39,10 +41,10 @@
             z-index: 1000;
             background-color: var(--primary-color);
             color: #fff;
-            transition: all 0.3s;
+            overflow-y: auto;
         }
         
-        #sidebar .sidebar-header {
+        .sidebar .sidebar-header {
             padding: 20px;
             background: rgba(0,0,0,0.1);
             border-bottom: 1px solid #4b545c;
@@ -50,17 +52,13 @@
             align-items: center;
         }
 
-        #sidebar .sidebar-header img {
+        .sidebar .sidebar-header img {
             width: 33px;
             height: 33px;
             margin-right: 10px;
         }
         
-        #sidebar ul.components {
-            padding: 20px 0;
-        }
-        
-        #sidebar ul li a {
+        .sidebar .nav-link {
             padding: 12px 20px;
             font-size: 1.1em;
             display: block;
@@ -69,29 +67,27 @@
             transition: 0.3s;
         }
         
-        #sidebar ul li a:hover {
+        .sidebar .nav-link:hover {
             color: #fff;
             background: rgba(255,255,255,0.1);
         }
 
-        #sidebar ul li a.active {
+        .sidebar .nav-link.active {
             background-color: var(--accent-color);
             color: #fff;
             border-radius: 4px;
             margin: 0 10px;
         }
 
-        #sidebar ul li a i {
+        .sidebar .nav-link i {
             margin-right: 10px;
             width: 20px;
             text-align: center;
         }
         
         /* Content Styles */
-        #content {
-            width: calc(100% - var(--sidebar-width));
+        .main-container {
             margin-left: var(--sidebar-width);
-            transition: all 0.3s;
             min-height: 100vh;
         }
         
@@ -101,112 +97,91 @@
             border-bottom: 1px solid #dee2e6;
             padding: 0 20px;
         }
-        
+
         .main-content {
             padding: 20px;
         }
 
-        .breadcrumb-item a {
-            text-decoration: none;
+        .main-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #dee2e6;
+            background: #fff;
+            text-align: center;
+            color: #6c757d;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            #sidebar {
-                margin-left: calc(-1 * var(--sidebar-width));
+            .sidebar {
+                margin-left: -250px;
             }
-            #sidebar.active {
+            .sidebar.active {
                 margin-left: 0;
             }
-            #content {
-                width: 100%;
+            .main-container {
                 margin-left: 0;
-            }
-            #content.active {
-                margin-left: var(--sidebar-width);
-                width: calc(100% - var(--sidebar-width));
             }
         }
     </style>
-    <th:block layout:fragment="css"></th:block>
 </head>
 <body>
 
-    <div class="wrapper">
-        <!-- Sidebar -->
-        <nav id="sidebar">
+    <!-- Sidebar -->
+    <div th:fragment="sidebar">
+        <nav class="sidebar">
             <div class="sidebar-header">
                 <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="Logo" class="brand-image img-circle elevation-3">
                 <span class="brand-text font-weight-light">QUẢN LÝ ĐÀO TẠO</span>
             </div>
 
-            <ul class="list-unstyled components">
-                <li class="nav-item">
-                    <a th:href="@{/admin/students}" class="nav-link" th:classappend="${activePage == 'students'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-person-fill"></i>
-                        <span>Quản Lý Học Sinh</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/exam-papers}" class="nav-link" th:classappend="${activePage == 'exam-papers'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-file-earmark-fill"></i>
-                        <span>Quản Lý Đề Thi</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/exam-types}" class="nav-link" th:classappend="${activePage == 'exam-types'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-calendar-check-fill"></i>
-                        <span>Quản Lý Loại Kỳ Thi</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/exams}" class="nav-link" th:classappend="${activePage == 'exams'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-calendar-check-fill"></i>
-                        <span>Quản Lý Lịch Thi</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/exam-rooms}" class="nav-link" th:classappend="${activePage == 'exam-rooms'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-building-fill"></i>
-                        <span>Quản Lý Phòng Thi</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/roles}" class="nav-link" th:classappend="${activePage == 'roles'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-person-rolodex"></i>
-                        <span>Quản Lý Vai Trò</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/users}" class="nav-link" th:classappend="${activePage == 'users'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-person-lines-fill"></i>
-                        <span>Quản Lý Người Dùng</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/permissions}" class="nav-link" th:classappend="${activePage == 'permissions'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-key-fill"></i>
-                        <span>Quản Lý Quyền</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/role-permissions}" class="nav-link" th:classappend="${activePage == 'role-permissions'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-person-plus"></i>
-                        <span>Quản Lý Gán Quyền Vai Trò</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/admin/user-roles}" class="nav-link" th:classappend="${activePage == 'user-roles'} ? 'active' : ''">
-                        <i class="nav-icon bi bi-person-lines-fill"></i>
-                        <span>Quản Lý Gán Vai Trò Người Dùng</span>
-                    </a>
-                </li>
-            </ul>
+            <div class="nav flex-column">
+                <a th:href="@{/admin/students}" class="nav-link" th:classappend="${activePage == 'students'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-person-fill"></i>
+                    <span>Quản Lý Học Sinh</span>
+                </a>
+                <a th:href="@{/admin/exam-papers}" class="nav-link" th:classappend="${activePage == 'exam-papers'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-file-earmark-fill"></i>
+                    <span>Quản Lý Đề Thi</span>
+                </a>
+                <a th:href="@{/admin/exam-types}" class="nav-link" th:classappend="${activePage == 'exam-types'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-calendar-check-fill"></i>
+                    <span>Quản Lý Loại Kỳ Thi</span>
+                </a>
+                <a th:href="@{/admin/exams}" class="nav-link" th:classappend="${activePage == 'exams'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-calendar-check-fill"></i>
+                    <span>Quản Lý Lịch Thi</span>
+                </a>
+                <a th:href="@{/admin/exam-rooms}" class="nav-link" th:classappend="${activePage == 'exam-rooms'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-building-fill"></i>
+                    <span>Quản Lý Phòng Thi</span>
+                </a>
+                <a th:href="@{/admin/roles}" class="nav-link" th:classappend="${activePage == 'roles'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-person-rolodex"></i>
+                    <span>Quản Lý Vai Trò</span>
+                </a>
+                <a th:href="@{/admin/users}" class="nav-link" th:classappend="${activePage == 'users'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-person-lines-fill"></i>
+                    <span>Quản Lý Người Dùng</span>
+                </a>
+                <a th:href="@{/admin/permissions}" class="nav-link" th:classappend="${activePage == 'permissions'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-key-fill"></i>
+                    <span>Quản Lý Quyền</span>
+                </a>
+                <a th:href="@{/admin/role-permissions}" class="nav-link" th:classappend="${activePage == 'role-permissions'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-person-plus"></i>
+                    <span>Quản Lý Gán Quyền Vai Trò</span>
+                </a>
+                <a th:href="@{/admin/user-roles}" class="nav-link" th:classappend="${activePage == 'user-roles'} ? 'active' : ''">
+                    <i class="nav-icon bi bi-person-lines-fill"></i>
+                    <span>Quản Lý Gán Vai Trò Người Dùng</span>
+                </a>
+            </div>
         </nav>
+    </div>
 
-        <!-- Page Content -->
-        <div id="content">
-            <div style="display:none" layout:fragment="active_page_setter"></div>
+    <!-- Main Content Wrapper -->
+    <div th:fragment="main-content">
+        <div class="main-container">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
                     <button type="button" id="sidebarCollapse" class="btn btn-outline-secondary d-md-none">
@@ -229,18 +204,19 @@
                 </div>
             </nav>
 
-            <div class="main-content">
-                <div layout:fragment="content">
-                    <!-- Page content goes here -->
-                </div>
+            <div class="main-content" id="page-content">
+                <!-- Page content goes here -->
             </div>
             
-            <footer class="main-footer px-4 py-3 border-top bg-white text-secondary text-center">
+            <footer class="main-footer">
                 <strong>Copyright &copy; 2024 <a href="#">Quản Lý Đào Tạo</a>.</strong>
                 All rights reserved.
             </footer>
         </div>
     </div>
+
+    <!-- Modal fragment for child pages -->
+    <div th:fragment="modal-container"></div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -250,10 +226,19 @@
     <script>
         $(document).ready(function () {
             $('#sidebarCollapse').on('click', function () {
-                $('#sidebar, #content').toggleClass('active');
+                $('.sidebar').toggleClass('active');
+            });
+            
+            // Auto-set active menu based on current URL
+            var currentPath = window.location.pathname;
+            $('.sidebar .nav-link').each(function() {
+                var href = $(this).attr('href');
+                if (href && currentPath.includes(href.replace('/admin/', ''))) {
+                    $(this).addClass('active');
+                }
             });
         });
     </script>
-    <th:block layout:fragment="script"></th:block>
-</body>
+
+    </body>
 </html>
