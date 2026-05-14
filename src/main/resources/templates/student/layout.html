@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinh Viên - Hệ Thống Quản Lý Đào Tạo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #4f46e5; --accent-color: #7c3aed; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; }
+        .sidebar { width: 250px; background: linear-gradient(180deg, var(--primary-color), var(--accent-color)); min-height: 100vh; position: fixed; }
+        .sidebar a { color: white; text-decoration: none; padding: 15px 20px; display: block; transition: 0.3s; }
+        .sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,0.2); }
+        .content { margin-left: 250px; padding: 20px; }
+        .user-info { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <div class="sidebar">
+            <div class="user-info text-white">
+                <i class="fas fa-user-graduate me-2"></i>
+                <span th:text="${student?.fullname ?: 'Sinh Viên'}">Sinh Viên</span>
+            </div>
+            <a th:href="@{/student}" th:classappend="${activePage == 'dashboard'} ? 'active'">
+                <i class="fas fa-home me-2"></i> Trang Chủ
+            </a>
+            <a th:href="@{/student/exams}" th:classappend="${activePage == 'exams'} ? 'active'">
+                <i class="fas fa-calendar-alt me-2"></i> Danh Sách Kỳ Thi
+            </a>
+            <a th:href="@{/student/my-registrations}" th:classappend="${activePage == 'registrations'} ? 'active'">
+                <i class="fas fa-clipboard-list me-2"></i> Đăng Ký Của Tôi
+            </a>
+            <a th:href="@{/student/results}" th:classappend="${activePage == 'results'} ? 'active'">
+                <i class="fas fa-chart-scatter me-2"></i> Kết Quả Thi
+            </a>
+            <a th:href="@{/logout}">
+                <i class="fas fa-sign-out-alt me-2"></i> Đăng Xuất
+            </a>
+        </div>
+        <div class="content flex-grow-1 p-4">
+        <th:block layout:fragment="content"></th:block>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <th:block layout:fragment="script"></th:block>
+</body>
+</html>

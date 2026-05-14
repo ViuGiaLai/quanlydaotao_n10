@@ -2,6 +2,7 @@ package com.example.demo.n2.model.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
@@ -17,56 +18,56 @@ public class Student {
             nullable = false)
     private UUID id;
 
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-	private UUID user_id;
+    @Column(name = "user_id", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID user_id;
     
-    @Column(name = "code", length = 20)
+    @Column(name = "code", length = 100, unique = true)
     private String code;
 	
-    @Column(name = "full_name", length = 100)
+    @Column(name = "full_name", length = 255)
     private String fullname;
     
     @Column(name = "date_of_birth")
-	private LocalDateTime date_of_birth;
+    private LocalDate dateOfBirth;
     
     @Column(name = "gender", length = 10)
-    private String gender;
+    private String gender;  // 1: Nam, 2: Nữ, 0: Khác
 
-	@Column(name = "personal_identification_number", length = 20)
-    private String personal_identification_number;
+    @Column(name = "personal_identification_number", length = 20)
+    private String personalIdentificationNumber;
 
     @Column(name = "date_of_issue")
-    private LocalDateTime date_of_issue;
+    private LocalDate dateOfIssue;
 
-	@Column(name = "card_place", length = 100)
-    private String card_place;
+    @Column(name = "card_place", length = 100)
+    private String cardPlace;
 
-	@Column(name = "address", length = 300)
+    @Column(name = "address", length = 300)
     private String address;
 
     @Column(name = "current_address", length = 300)
-    private String current_address;
+    private String currentAddress;
 
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID academic_year_year;
+    @Column(name = "academic_year_year", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID academicYearYear;
     
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID department_id;
+    @Column(name = "department_id", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID departmentId;
 
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID major_id;
+    @Column(name = "major_id", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID majorId;
     
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID training_program_id;
+    @Column(name = "training_program_id", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID trainingProgramId;
 
     @Column(name = "status", length = 50)
     private String status;
 
-    @Column(columnDefinition = "UNIQUEIDENTIFIER")
-    private UUID student_classe_id;
+    @Column(name = "student_classe_id", columnDefinition = "UNIQUEIDENTIFIER")
+    private UUID studentClasseId;
 
     @Column(name = "admission_year")
-    private LocalDateTime admission_year;
+    private LocalDateTime admissionYear;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -74,16 +75,16 @@ public class Student {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "created_by")
+    @Column(name = "created_by", columnDefinition = "UNIQUEIDENTIFIER")
     private UUID createdBy;
 
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", columnDefinition = "UNIQUEIDENTIFIER")
     private UUID updatedBy;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Column(name = "deleted_by")
+    @Column(name = "deleted_by", columnDefinition = "UNIQUEIDENTIFIER")
     private UUID deletedBy;
 
     @Column(name = "is_active")
@@ -91,234 +92,80 @@ public class Student {
     
 
     public Student() {}
-    
-    public Student(UUID user_id, String code, String fullname, LocalDateTime date_of_birth, String gender,
-                   String personal_identification_number, LocalDateTime date_of_issue, String card_place, String address, String current_address, UUID academic_year_year, UUID department_id,  UUID major_id, UUID training_program_id, String status, UUID student_classe_id, LocalDateTime admission_year, LocalDateTime createdAt, LocalDateTime updatedAt, UUID createdBy, UUID updatedBy, LocalDateTime deletedAt, UUID deletedBy, Boolean isActive) {    
-        this.user_id = user_id;
-        this.code = code;
-        this.fullname = fullname;
-        this.date_of_birth = date_of_birth;
-        this.gender = gender;
-        this.personal_identification_number = personal_identification_number;
-        this.date_of_issue = date_of_issue;
-        this.card_place = card_place;
-        this.address = address;
-        this.current_address = current_address;
-        this.academic_year_year = academic_year_year;
-        this.department_id = department_id;
-        this.major_id = major_id;
-        this.training_program_id = training_program_id;
-        this.status = status;
-        this.student_classe_id = student_classe_id;
-        this.admission_year = admission_year;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.createdBy = createdBy;
-        this.updatedBy = updatedBy;
-        this.deletedAt = deletedAt;
-        this.deletedBy = deletedBy;
-        this.isActive = isActive;
-    }
 
-    public UUID getId() {
-        return id;
-    }
+    // Getters and Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    public UUID getUser_id() { return user_id; }
+    public void setUser_id(UUID user_id) { this.user_id = user_id; }
 
-    public UUID getUser_id() {
-        return user_id;
-    }
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
 
-    public void setUser_id(UUID user_id) {
-        this.user_id = user_id;
-    }
+    public String getFullname() { return fullname; }
+    public void setFullname(String fullname) { this.fullname = fullname; }
 
-    public String getCode() {
-        return code;
-    }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
 
-    public String getFullname() {
-        return fullname;
-    }
+    public String getPersonalIdentificationNumber() { return personalIdentificationNumber; }
+    public void setPersonalIdentificationNumber(String personalIdentificationNumber) { this.personalIdentificationNumber = personalIdentificationNumber; }
 
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
-    }
+    public LocalDate getDateOfIssue() { return dateOfIssue; }
+    public void setDateOfIssue(LocalDate dateOfIssue) { this.dateOfIssue = dateOfIssue; }
 
-    public LocalDateTime getDate_of_birth() {
-        return date_of_birth;
-    }
+    public String getCardPlace() { return cardPlace; }
+    public void setCardPlace(String cardPlace) { this.cardPlace = cardPlace; }
 
-    public void setDate_of_birth(LocalDateTime date_of_birth) {
-        this.date_of_birth = date_of_birth;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public String getGender() {
-        return gender;
-    }
+    public String getCurrentAddress() { return currentAddress; }
+    public void setCurrentAddress(String currentAddress) { this.currentAddress = currentAddress; }
 
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
+    public UUID getAcademicYearYear() { return academicYearYear; }
+    public void setAcademicYearYear(UUID academicYearYear) { this.academicYearYear = academicYearYear; }
 
-    public String getPersonal_identification_number() {
-        return personal_identification_number;
-    }
+    public UUID getDepartmentId() { return departmentId; }
+    public void setDepartmentId(UUID departmentId) { this.departmentId = departmentId; }
 
-    public void setPersonal_identification_number(String personal_identification_number) {
-        this.personal_identification_number = personal_identification_number;
-    }
+    public UUID getMajorId() { return majorId; }
+    public void setMajorId(UUID majorId) { this.majorId = majorId; }
 
-    public LocalDateTime getDate_of_issue() {
-        return date_of_issue;
-    }
+    public UUID getTrainingProgramId() { return trainingProgramId; }
+    public void setTrainingProgramId(UUID trainingProgramId) { this.trainingProgramId = trainingProgramId; }
 
-    public void setDate_of_issue(LocalDateTime date_of_issue) {
-        this.date_of_issue = date_of_issue;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public String getCard_place() {
-        return card_place;
-    }
+    public UUID getStudentClasseId() { return studentClasseId; }
+    public void setStudentClasseId(UUID studentClasseId) { this.studentClasseId = studentClasseId; }
 
-    public void setCard_place(String card_place) {
-        this.card_place = card_place;
-    }
+    public LocalDateTime getAdmissionYear() { return admissionYear; }
+    public void setAdmissionYear(LocalDateTime admissionYear) { this.admissionYear = admissionYear; }
 
-    public String getAddress() {
-        return address;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public String getCurrent_address() {
-        return current_address;
-    }
+    public UUID getCreatedBy() { return createdBy; }
+    public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
 
-    public void setCurrent_address(String current_address) {
-        this.current_address = current_address;
-    }
+    public UUID getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(UUID updatedBy) { this.updatedBy = updatedBy; }
 
-    public UUID getAcademic_year_year() {
-        return academic_year_year;
-    }
+    public LocalDateTime getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 
-    public void setAcademic_year_year(UUID academic_year_year) {
-        this.academic_year_year = academic_year_year;
-    }
+    public UUID getDeletedBy() { return deletedBy; }
+    public void setDeletedBy(UUID deletedBy) { this.deletedBy = deletedBy; }
 
-    public UUID getDepartment_id() {
-        return department_id;
-    }
-
-    public void setDepartment_id(UUID department_id) {
-        this.department_id = department_id;
-    }
-
-    public UUID getMajor_id() {
-        return major_id;
-    }
-
-    public void setMajor_id(UUID major_id) {
-        this.major_id = major_id;
-    }
-
-    public UUID getTraining_program_id() {
-        return training_program_id;
-    }
-
-    public void setTraining_program_id(UUID training_program_id) {
-        this.training_program_id = training_program_id;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public UUID getStudent_classe_id() {
-        return student_classe_id;
-    }
-
-    public void setStudent_classe_id(UUID student_classe_id) {
-        this.student_classe_id = student_classe_id;
-    }
-
-    public LocalDateTime getAdmission_year() {
-        return admission_year;
-    }
-
-    public void setAdmission_year(LocalDateTime admission_year) {
-        this.admission_year = admission_year;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public UUID getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(UUID createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public UUID getUpdatedBy() {
-        return updatedBy;
-    }
-
-    public void setUpdatedBy(UUID updatedBy) {
-        this.updatedBy = updatedBy;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
-    public UUID getDeletedBy() {
-        return deletedBy;
-    }
-
-    public void setDeletedBy(UUID deletedBy) {
-        this.deletedBy = deletedBy;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

@@ -10,9 +10,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "user_roles")
+@Table(name = "user_roles", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_user_roles_user_role", columnNames = {"user_id", "role_id"})
+})
 public class UserRole {
 
     @Id

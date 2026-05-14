@@ -20,6 +20,7 @@
                             </button>
                         </div>
                     </div>
+<<<<<<< HEAD
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
@@ -43,6 +44,29 @@
                                             </tbody>
                                         </table>
                                     </div>
+=======
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Danh Sách Đề Thi</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã Đề Thi</th>
+                                                <th>Kỳ Thi</th>
+                                                <th>File Đề</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="examPaperTable"></tbody>
+                                    </table>
+>>>>>>> 0d2f095 (update new UI viu)
                                 </div>
                             </div>
                         </div>
@@ -51,7 +75,255 @@
                 </div>
                 <!--end::Container-->
             </div>
+<<<<<<< HEAD
             
     </div>
+=======
+        </div>
+
+        <div class="modal fade" id="examPaperModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm Đề Thi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="examPaperForm">
+                            <input type="hidden" id="examPaperId">
+                            <div class="mb-3">
+                                <label for="examId" class="form-label">Kỳ Thi</label>
+                                <select class="form-select" id="examId" required>
+                                    <option value="">-- Chọn Kỳ Thi --</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="paperCode" class="form-label">Mã Đề Thi</label>
+                                <input type="text" class="form-control" id="paperCode" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fileUrl" class="form-label">Link File</label>
+                                <input type="text" class="form-control" id="fileUrl">
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">Kích hoạt</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="saveExamPaper()">Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script>
+        const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
+        const Default = {
+            scrollbarTheme: 'os-theme-light',
+            scrollbarAutoHide: 'leave',
+            scrollbarClickScroll: true,
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+            if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars !== undefined) {
+                OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+                    scrollbars: {
+                        theme: Default.scrollbarTheme,
+                        autoHide: Default.scrollbarAutoHide,
+                        clickScroll: Default.scrollbarClickScroll,
+                    },
+                });
+            }
+        });
+    </script>
+<script>
+        const EXAM_API_URL = "/api/exams/list";
+        const API_URL = "/api/exam-papers";
+        const EXAM_PAPER_PAGE_SIZE = 10;
+        let examsList = [];
+        let examPaperItems = [];
+        let examPaperCurrentPage = 1;
+
+        async function loadLookupData() {
+            try {
+                const res = await fetch(EXAM_API_URL);
+                examsList = await res.json();
+                populateSelects();
+            } catch (e) { console.error("Load lookup error:", e); }
+        }
+
+        function populateSelects() {
+            const examSelect = document.getElementById("examId");
+            if (!examSelect) return;
+            examSelect.innerHTML = '<option value="">-- Chọn Kỳ Thi --</option>';
+            examsList.forEach(e => {
+                examSelect.innerHTML += `<option value="${e.id}">${e.examName || e.name || e.id}</option>`;
+            });
+        }
+
+        function getExamName(examId) {
+            if (!examId) return "";
+            if (!Array.isArray(examsList) || examsList.length === 0) return String(examId).substring(0, 8);
+            const exam = examsList.find(e => String(e.id) === String(examId));
+            return exam ? (exam.examName || exam.name || String(examId).substring(0, 8)) : String(examId).substring(0, 8);
+        }
+
+        async function loadExamPapers() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                examPaperItems = Array.isArray(data) ? data : [];
+                examPaperCurrentPage = 1;
+                if (examsList.length === 0) {
+                    await loadLookupData();
+                }
+                renderExamPaperTable();
+            } catch (e) { console.error("Load error:", e); }
+        }
+
+        function renderExamPaperTable() {
+                const pageItems = AdminPagination.paginate(examPaperItems, examPaperCurrentPage, EXAM_PAPER_PAGE_SIZE);
+                let html = "";
+                pageItems.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.paperCode}</td>
+                            <td><small>${getExamName(p.examId)}</small></td>
+                            <td>
+                                ${p.fileUrl ? `
+                                    <button class="btn btn-primary btn-sm me-1" onclick="downloadFile('${p.fileUrl}')" title="Tài xuông">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="viewFile('${p.fileUrl}')" title="Xem">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                ` : '-'}
+                            </td>
+                            <td><span class="badge ${p.isActive ? 'text-bg-success' : 'text-bg-danger'}">${p.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" onclick='editExamPaper(${JSON.stringify(p)})'>
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteExamPaper('${p.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                document.getElementById("examPaperTable").innerHTML = html;
+                AdminPagination.render("examPaperPagination", examPaperItems.length, examPaperCurrentPage, EXAM_PAPER_PAGE_SIZE, (nextPage) => {
+                    examPaperCurrentPage = nextPage;
+                    renderExamPaperTable();
+                });
+        }
+
+        function openAddModal() {
+            document.getElementById("modalTitle").innerText = "Thêm Đề Thi";
+            document.getElementById("examPaperId").value = "";
+            document.getElementById("examPaperForm").reset();
+            document.getElementById("isActive").checked = true;
+            $("#examPaperModal").modal("show");
+        }
+
+        function editExamPaper(p) {
+            document.getElementById("modalTitle").innerText = "Sửa Đề Thi";
+            document.getElementById("examPaperId").value = p.id;
+            document.getElementById("examId").value = p.examId;
+            document.getElementById("paperCode").value = p.paperCode;
+            document.getElementById("fileUrl").value = p.fileUrl || "";
+            document.getElementById("isActive").checked = p.isActive;
+            $("#examPaperModal").modal("show");
+        }
+
+        async function saveExamPaper() {
+            const id = document.getElementById("examPaperId").value;
+            const paper = {
+                examId: document.getElementById("examId").value,
+                paperCode: document.getElementById("paperCode").value,
+                fileUrl: document.getElementById("fileUrl").value,
+                isActive: document.getElementById("isActive").checked
+            };
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(paper)
+                });
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(errorText || "Không thể lưu đề thi.");
+                }
+
+                $("#examPaperModal").modal("hide");
+                loadExamPapers();
+            } catch (error) {
+                console.error("Save exam paper error:", error);
+                alert("Lưu đề thi thất bại. Vui lòng kiểm tra dữ liệu và thử lại.");
+            }
+        }
+
+        async function deleteExamPaper(id) {
+            if (!confirm("Bạn có chắc muốn xóa?")) return;
+            await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+            loadExamPapers();
+        }
+
+        function getFileNameFromUrl(url) {
+            return decodeURIComponent(url.split('/').pop());
+        }
+
+        async function downloadFile(url) {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+
+                const filename = getFileNameFromUrl(url);
+
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                window.URL.revokeObjectURL(blobUrl);
+        }
+
+        function viewFile(fileUrl) {
+            const fileExtension = fileUrl.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'pdf') {
+                // Open PDF directly in new tab
+                window.open(fileUrl, '_blank');
+            } else if (fileExtension === 'docx' || fileExtension === 'doc') {
+                // Use Microsoft Office Online Viewer for DOCX files
+                const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+                window.open(viewerUrl, '_blank');
+            } else {
+                // For other file types, try to open directly
+                window.open(fileUrl, '_blank');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadLookupData();
+            await loadExamPapers();
+        });
+    </script>
+
+    </th:block>
+>>>>>>> 0d2f095 (update new UI viu)
 </body>
 </html>

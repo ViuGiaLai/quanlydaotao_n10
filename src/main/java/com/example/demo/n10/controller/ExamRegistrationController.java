@@ -1,5 +1,7 @@
 package com.example.demo.n10.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.n10.model.entity.ExamRegistration;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @RequestMapping("/api/exam-registrations")
 public class ExamRegistrationController {
     
+    private static final Logger logger = LoggerFactory.getLogger(ExamRegistrationController.class);
     private final ExamRegistrationService examRegistrationService;
 
     public ExamRegistrationController(ExamRegistrationService examRegistrationService) {
@@ -23,6 +26,11 @@ public class ExamRegistrationController {
         return examRegistrationService.findAll();
     }
 
+    @GetMapping("/list")
+    public List<ExamRegistration> listAllExamRegistrations() {
+        return examRegistrationService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ExamRegistration getExamRegistrationById(@PathVariable UUID id) {
         return examRegistrationService.findById(id)
@@ -31,6 +39,10 @@ public class ExamRegistrationController {
 
     @PostMapping
     public ExamRegistration createExamRegistration(@RequestBody ExamRegistration examRegistration) {
+        logger.info("Received examRegistration: examId={}, examRoomId={}, studentId={}, rollNumber={}, isActive={}",
+                examRegistration.getExamId(), examRegistration.getExamRoomId(), 
+                examRegistration.getStudentId(), examRegistration.getRollNumber(),
+                examRegistration.getIsActive());
         return examRegistrationService.save(examRegistration);
     }
 
@@ -101,8 +113,9 @@ public class ExamRegistrationController {
                 .map(existingExamRegistration -> {
                     existingExamRegistration.setStudentId(examRegistration.getStudentId());
                     existingExamRegistration.setExamId(examRegistration.getExamId());
+                    existingExamRegistration.setExamRoomId(examRegistration.getExamRoomId());
+                    existingExamRegistration.setRollNumber(examRegistration.getRollNumber());
                     existingExamRegistration.setIsActive(examRegistration.getIsActive());
-                    // Update other fields as necessary
                     return examRegistrationService.save(existingExamRegistration);
                 })
                 .orElseThrow(() -> new RuntimeException("Exam Registration not found with id: " + id));

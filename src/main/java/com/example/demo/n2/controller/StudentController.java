@@ -34,6 +34,11 @@ public class StudentController {
         return service.getAll();
     }
 
+    @GetMapping("/list")
+    public List<Student> listAll() {
+        return service.getAll();
+    }
+
     // GET BY ID
     @GetMapping("/{id}")
     public Student getById(@PathVariable UUID id) {

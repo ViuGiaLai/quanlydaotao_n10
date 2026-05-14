@@ -12,13 +12,13 @@ public class ExamRegistration {
     private UUID id;
 
     @Column(name = "exam_id", nullable = false)
-    private UUID examId;
+    private String examId;
 
     @Column(name = "exam_room_id", nullable = false)
-    private UUID examRoomId;
+    private String examRoomId;
 
     @Column(name = "student_id", nullable = false)
-    private UUID studentId;
+    private String studentId;
 
     @Column(name = "roll_number", length = 20, nullable = false)
     private String rollNumber;
@@ -54,27 +54,27 @@ public class ExamRegistration {
         this.id = id;
     }
 
-    public UUID getExamId() {
+    public String getExamId() {
         return examId;
     }
 
-    public void setExamId(UUID examId) {
+    public void setExamId(String examId) {
         this.examId = examId;
     }
 
-    public UUID getExamRoomId() {
+    public String getExamRoomId() {
         return examRoomId;
     }
 
-    public void setExamRoomId(UUID examRoomId) {
+    public void setExamRoomId(String examRoomId) {
         this.examRoomId = examRoomId;
     }
 
-    public UUID getStudentId() {
+    public String getStudentId() {
         return studentId;
     }
 
-    public void setStudentId(UUID studentId) {
+    public void setStudentId(String studentId) {
         this.studentId = studentId;
     }
 

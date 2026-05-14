@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{teacher/layout}">
+<head>
+    <title>Kỳ Thi Phụ Trách</title>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='exams'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Kỳ Thi Phụ Trách</h2>
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Môn Thi</th>
+                            <th>Ngày Thi</th>
+                            <th>Phòng</th>
+                            <th>Số SV</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="exam : ${exams}">
+                            <td th:text="${exam.examTypeId}">-</td>
+                            <td th:text="${exam.examDate}">-</td>
+                            <td th:text="${exam.examStatus}">-</td>
+                            <td th:text="${exam.supervisorCount}">0</td>
+                            <td><span class="badge bg-success">Đã xác nhận</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(exams)}">
+                            <td colspan="5" class="text-center text-muted">Không có kỳ thi nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -23,14 +25,22 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/error", "/favicon.ico").permitAll()
+                        .requestMatchers("/login", "/error", "/favicon.ico", "/unauthorized").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/assets/**", "/plugins/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/", "/admin", "/admin/**", "/adminlte/**",
-                                "/exam-papers", "/exam-types", "/students")
-                        .authenticated()
+                        // Student pages - require STUDENT role
+                        .requestMatchers("/student/**").hasAuthority("ROLE_STUDENT")
+                        // Teacher pages - require LECTURER or TEACHER role
+                        .requestMatchers("/teacher/**").hasAnyAuthority("ROLE_LECTURER", "ROLE_TEACHER")
+                        // Admin pages - require ADMIN role
+                        .requestMatchers("/admin/**", "/adminlte/**").hasAuthority("ROLE_ADMIN")
+                        // Root and other authenticated pages
+                        .requestMatchers("/").authenticated()
                         .anyRequest().permitAll())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                        .csrfTokenRepository(csrfTokenRepository()))
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -45,8 +55,16 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll())
+                .exceptionHandling(ex -> ex
+                        .accessDeniedPage("/unauthorized"))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         return http.build();
+    }
+
+    private CsrfTokenRepository csrfTokenRepository() {
+        HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
+        repository.setHeaderName("X-CSRF-TOKEN");
+        return repository;
     }
 
     @Bean

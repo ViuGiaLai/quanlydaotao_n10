@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{student/layout}">
+<head>
+    <title>Danh Sách Kỳ Thi</title>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='exams'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Danh Sách Kỳ Thi</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Môn Thi</th>
+                            <th>Ngày Thi</th>
+                            <th>Giờ Thi</th>
+                            <th>Phòng Thi</th>
+                            <th>Hình Thức</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="exam : ${exams}">
+                            <td th:text="${exam.examTypeId}">-</td>
+                            <td th:text="${exam.examDate}">-</td>
+                            <td th:text="${exam.startTime}">-</td>
+                            <td th:text="${exam.examStatus}">-</td>
+                            <td th:text="${exam.examFormat}">-</td>
+                            <td>
+                                <a th:href="@{/student/register/{id}(id=${exam.id})}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> Đăng Ký
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(exams)}">
+                            <td colspan="6" class="text-center text-muted">Không có kỳ thi nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

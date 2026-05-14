@@ -21,17 +21,11 @@ public class ExamResultService {
 
     // Tìm kiếm tất cả kết quả thi
     public List<ExamResult> findAll() {
-        if (examResultRepository.findAll().isEmpty()) {
-            throw new RuntimeException("Không có kết quả thi nào.");
-        }
         return examResultRepository.findAll();
     }
 
     // Tìm kiếm kết quả thi theo ID
     public Optional<ExamResult> findById(UUID id) {
-        if (!examResultRepository.findById(id).isPresent()) {
-            throw new RuntimeException("Kết quả thi với ID " + id + " không tồn tại.");
-        } 
         return examResultRepository.findById(id);
     }
 

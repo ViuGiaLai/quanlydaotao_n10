@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{student/layout}">
+<head>
+    <title>Trang Chủ - Sinh Viên</title>
+    <th:block layout:fragment="css"></th:block>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='dashboard'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Chào mừng, <span th:text="${student?.fullname ?: 'Sinh Viên'}">Sinh Viên</span>!</h2>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>Kỳ Thi Sắp Tới</h5>
+                        <p class="card-text display-4" th:text="${upcomingExamCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-check-circle me-2"></i>Đã Đăng Ký</h5>
+                        <p class="card-text display-4" th:text="${registeredCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-star me-2"></i>Điểm TB</h5>
+                        <p class="card-text display-4" th:text="${avgScore ?: '-'}">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Thông Báo</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" th:if="${not #lists.isEmpty(notifications)}">
+                            <li class="list-group-item" th:each="notif : ${notifications}">
+                                <i class="fas fa-bell text-warning me-2"></i>
+                                <span th:text="${notif}">Thông báo</span>
+                            </li>
+                        </ul>
+                        <p th:if="${#lists.isEmpty(notifications)}" class="text-muted">Không có thông báo mới.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -34,6 +34,11 @@ public class RoleApiController {
         return roleService.findAll();
     }
 
+    @GetMapping("/list")
+    public List<Role> listAll() {
+        return roleService.findAll();
+    }
+
     @PostMapping("/{roleId}/permissions/{permId}")
     public Role addPermission(@PathVariable UUID roleId,
                               @PathVariable UUID permId) {

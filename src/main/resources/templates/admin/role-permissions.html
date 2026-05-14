@@ -43,8 +43,208 @@
                       </div>
                   </div>
                 </div>
+<<<<<<< HEAD
               </div>
             
     </div>
+=======
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Danh Sách Gán Quyền Vai Trò</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Vai Trò</th>
+                                                <th>Quyền</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rolePermissionTable"></tbody>
+                                    </table>
+                                </div>
+                                <div class="p-3 border-top" id="rolePermissionPagination"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="rolePermissionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Gán Quyền Cho Vai Trò</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="rolePermissionForm">
+                            <div class="mb-3">
+                                <label for="roleId" class="form-label">Vai Trò</label>
+                                <select class="form-select" id="roleId" required>
+                                    <option value="">-- Chọn Vai Trò --</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="permissionId" class="form-label">Quyền</label>
+                                <select class="form-select" id="permissionId" required>
+                                    <option value="">-- Chọn Quyền --</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="saveRolePermission()">Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script>
+            const ROLE_API_URL = "/api/roles/list";
+            const PERMISSION_API_URL = "/api/permissions/list";
+            const ROLE_PERMISSION_API_URL = "/api/role-permissions";
+            const ROLE_PERMISSION_PAGE_SIZE = 10;
+            let rolesList = [];
+            let permissionsList = [];
+            let rolePermissionItems = [];
+            let rolePermissionCurrentPage = 1;
+
+            async function loadRolesAndPermissions() {
+                try {
+                    const [rolesRes, permsRes] = await Promise.all([
+                        fetch(ROLE_API_URL),
+                        fetch(PERMISSION_API_URL)
+                    ]);
+                    rolesList = await rolesRes.json();
+                    permissionsList = await permsRes.json();
+                    populateSelects();
+                } catch (error) {
+                    console.error("Load roles/permissions error:", error);
+                }
+            }
+
+            function populateSelects() {
+                const roleSelect = document.getElementById("roleId");
+                const permSelect = document.getElementById("permissionId");
+                if (!roleSelect || !permSelect) return;
+                roleSelect.innerHTML = '<option value="">-- Chọn Vai Trò --</option>';
+                permSelect.innerHTML = '<option value="">-- Chọn Quyền --</option>';
+                rolesList.forEach(r => {
+                    roleSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                });
+                permissionsList.forEach(p => {
+                    permSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                });
+            }
+
+            async function loadRolePermissions() {
+                try {
+                    const res = await fetch(ROLE_PERMISSION_API_URL);
+                    const data = await res.json();
+                    rolePermissionItems = Array.isArray(data) ? data : [];
+                    rolePermissionCurrentPage = 1;
+                    // Wait for rolesList and permissionsList to be loaded
+                    if (rolesList.length === 0 || permissionsList.length === 0) {
+                        await loadRolesAndPermissions();
+                    }
+                    renderRolePermissionTable();
+                } catch (error) {
+                    console.error("Load role permissions error:", error);
+                    alert("Không thể tải role permissions.");
+                }
+            }
+
+            function getRoleName(roleId) {
+                if (!roleId) return "";
+                if (!Array.isArray(rolesList) || rolesList.length === 0) return String(roleId).substring(0, 8);
+                const role = rolesList.find(r => String(r.id) === String(roleId));
+                return role ? role.name : String(roleId).substring(0, 8);
+            }
+
+            function getPermissionName(permId) {
+                if (!permId) return "";
+                if (!Array.isArray(permissionsList) || permissionsList.length === 0) return String(permId).substring(0, 8);
+                const perm = permissionsList.find(p => String(p.id) === String(permId));
+                return perm ? perm.name : String(permId).substring(0, 8);
+            }
+
+            function renderRolePermissionTable() {
+                    const pageItems = AdminPagination.paginate(rolePermissionItems, rolePermissionCurrentPage, ROLE_PERMISSION_PAGE_SIZE);
+                    let html = "";
+                    pageItems.forEach((item) => {
+                        html += `
+                            <tr>
+                                <td>${getRoleName(item.roleId)}</td>
+                                <td>${getPermissionName(item.permissionId)}</td>
+                                <td><span class="badge ${item.isActive ? "text-bg-success" : "text-bg-secondary"}">${item.isActive ? "Hoạt động" : "Mặc định"}</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteRolePermission('${item.roleId}','${item.permissionId}')"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById("rolePermissionTable").innerHTML = html;
+                    AdminPagination.render("rolePermissionPagination", rolePermissionItems.length, rolePermissionCurrentPage, ROLE_PERMISSION_PAGE_SIZE, (nextPage) => {
+                        rolePermissionCurrentPage = nextPage;
+                        renderRolePermissionTable();
+                    });
+            }
+
+            function openRolePermissionModal() {
+                document.getElementById("rolePermissionForm").reset();
+                $("#rolePermissionModal").modal("show");
+            }
+
+            async function saveRolePermission() {
+                const roleId = document.getElementById("roleId").value.trim();
+                const permissionId = document.getElementById("permissionId").value.trim();
+                if (!roleId || !permissionId) {
+                    alert("Vui lòng chọn Vai Trò và Quyền.");
+                    return;
+                }
+                try {
+                    const res = await fetch(`${ROLE_PERMISSION_API_URL}?roleId=${encodeURIComponent(roleId)}&permissionId=${encodeURIComponent(permissionId)}`, {
+                        method: "POST"
+                    });
+                    if (!res.ok) throw new Error("Save failed");
+                    $("#rolePermissionModal").modal("hide");
+                    loadRolePermissions();
+                } catch (error) {
+                    console.error("Save role permission error:", error);
+                    alert("Gán quyền thất bại.");
+                }
+            }
+
+            async function deleteRolePermission(roleId, permissionId) {
+                if (!confirm("Bạn có chắc muốn xóa gán quyền này?")) return;
+                try {
+                    const res = await fetch(`${ROLE_PERMISSION_API_URL}?roleId=${encodeURIComponent(roleId)}&permissionId=${encodeURIComponent(permissionId)}`, {
+                        method: "DELETE"
+                    });
+                    if (!res.ok) throw new Error("Delete failed");
+                    loadRolePermissions();
+                } catch (error) {
+                    console.error("Delete role permission error:", error);
+                    alert("Xóa gán quyền thất bại.");
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadRolesAndPermissions();
+                await loadRolePermissions();
+            });
+        </script>
+    </th:block>
+>>>>>>> 0d2f095 (update new UI viu)
 </body>
 </html>

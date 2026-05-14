@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{teacher/layout}">
+<head>
+    <title>Điểm Danh</title>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='attendance'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Điểm Danh Sinh Viên</h2>
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Phòng Thi</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="reg : ${registrations}">
+                            <td th:text="${reg.studentId}">-</td>
+                            <td>-</td>
+                            <td th:text="${reg.examRoomId}">-</td>
+                            <td><span class="badge bg-warning">Chưa điểm danh</span></td>
+                            <td>
+                                <form th:action="@{/teacher/attendance/mark}" method="post" class="d-inline">
+                                    <input type="hidden" name="registrationId" th:value="${reg.id}">
+                                    <input type="hidden" name="present" value="true">
+                                    <button type="submit" class="btn btn-success btn-sm">Đánh dấu có mặt</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(registrations)}">
+                            <td colspan="5" class="text-center text-muted">Không có sinh viên để điểm danh.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

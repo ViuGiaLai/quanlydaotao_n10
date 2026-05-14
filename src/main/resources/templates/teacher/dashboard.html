@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{teacher/layout}">
+<head>
+    <title>Trang Chủ - Giảng Viên</title>
+</head>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='dashboard'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Chào mừng, <span th:text="${teacher?.fullname ?: 'Giảng Viên'}">Giảng Viên</span>!</h2>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-calendar-alt me-2"></i>Kỳ Thi</h5>
+                        <p class="card-text display-4" th:text="${examCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-users me-2"></i>Sinh Viên</h5>
+                        <p class="card-text display-4" th:text="${studentCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-edit me-2"></i>Chấm Điểm</h5>
+                        <p class="card-text display-4" th:text="${pendingScoreCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-file-alt me-2"></i>Đề Thi</h5>
+                        <p class="card-text display-4" th:text="${paperCount ?: 0}">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><h4>Công Việc Gần Đây</h4></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item text-muted">Không có công việc gần đây.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

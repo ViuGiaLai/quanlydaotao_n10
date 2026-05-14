@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{student/layout}">
+<head>
+    <title>Kết Quả Thi</title>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='results'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Kết Quả Thi Của Tôi</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Môn Thi</th>
+                            <th>Ngày Thi</th>
+                            <th>Điểm</th>
+                            <th>Xếp Loại</th>
+                            <th>Ghi Chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="result : ${results}">
+                            <td th:text="${result.examId}">-</td>
+                            <td>-</td>
+                            <td th:text="${result.score ?: '-'}">-</td>
+                            <td>
+                                <span th:if="${result.score != null}">
+                                    <span class="badge bg-success" th:if="${result.score >= 8}">Giỏi</span>
+                                    <span class="badge bg-info" th:if="${result.score >= 6 && result.score < 8}">Khá</span>
+                                    <span class="badge bg-warning" th:if="${result.score >= 4 && result.score < 6}">Trung bình</span>
+                                    <span class="badge bg-danger" th:if="${result.score < 4}">Yếu</span>
+                                </span>
+                                <span th:if="${result.score == null}" class="badge bg-secondary">Chưa chấm</span>
+                            </td>
+                            <td th:text="${result.status}">-</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(results)}">
+                            <td colspan="5" class="text-center text-muted">Chưa có kết quả nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

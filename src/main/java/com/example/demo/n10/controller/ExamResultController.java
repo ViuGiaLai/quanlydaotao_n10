@@ -24,6 +24,11 @@ public class ExamResultController {
         return examResultService.findAll();
     }
 
+    @GetMapping("/list")
+    public List<ExamResult> listAllExamResults() {
+        return examResultService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ExamResult> getExamResultById(@PathVariable UUID id) {
         return examResultService.findById(id)

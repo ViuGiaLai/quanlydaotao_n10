@@ -22,6 +22,11 @@ public class ExamRoomController {
         return examRoomService.getAllExamRooms(); // Gọi qua Service
     }
 
+    @GetMapping("/list")
+    public List<ExamRoom> listAll() {
+        return examRoomService.getAllExamRooms();
+    }
+
     @PostMapping
     public ExamRoom save(@RequestBody ExamRoom examRoom) {
         return examRoomService.saveExamRoom(examRoom);

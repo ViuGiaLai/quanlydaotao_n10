@@ -30,4 +30,23 @@ public class PermissionApiController {
     public List<Permission> list() {
         return repo.findAll();
     }
+<<<<<<< HEAD
+=======
+
+    @GetMapping("/list")
+    public List<Permission> listAll() {
+        return repo.findAll();
+    }
+
+    @PutMapping("/{id}")
+    public Permission update(@PathVariable UUID id, @RequestBody Permission p) {
+        p.setId(id);
+        return repo.save(p);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable UUID id) {
+        repo.deleteById(id);
+    }
+>>>>>>> 0d2f095 (update new UI viu)
 }

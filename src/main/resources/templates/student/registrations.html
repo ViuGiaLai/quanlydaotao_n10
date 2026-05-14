@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{student/layout}">
+<head>
+    <title>Đăng Ký Của Tôi</title>
+</head>
+<body>
+<th:block layout:fragment="active_page_setter">
+    <th:block th:with="activePage='registrations'"></th:block>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <h2 class="mb-4">Đăng Ký Của Tôi</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Môn Thi</th>
+                            <th>Số Báo Danh</th>
+                            <th>Ngày Thi</th>
+                            <th>Phòng Thi</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="reg : ${registrations}">
+                            <td th:text="${reg.examId}">-</td>
+                            <td th:text="${reg.rollNumber}">-</td>
+                            <td>-</td>
+                            <td th:text="${reg.examRoomId}">-</td>
+                            <td>
+                                <span class="badge bg-success" th:if="${reg.isActive}">Đã xác nhận</span>
+                                <span class="badge bg-warning" th:unless="${reg.isActive}">Chờ xác nhận</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/student/cancel/{id}(id=${reg.id})}" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Bạn có chắc muốn hủy?')">
+                                    <i class="fas fa-times"></i> Hủy
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(registrations)}">
+                            <td colspan="6" class="text-center text-muted">Chưa có đăng ký nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

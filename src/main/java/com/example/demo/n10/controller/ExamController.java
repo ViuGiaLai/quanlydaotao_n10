@@ -22,6 +22,11 @@ public class ExamController {
         return examService.getAllExams();
     }
 
+    @GetMapping("/list")
+    public List<Exam> listAllExams() {
+        return examService.getAllExams();
+    }
+
     @PostMapping
     public Exam saveExam(@RequestBody Exam exam) {
         return examService.saveExam(exam);

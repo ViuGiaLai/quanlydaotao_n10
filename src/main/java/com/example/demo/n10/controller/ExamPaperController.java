@@ -23,6 +23,11 @@ public class ExamPaperController {
         return examPaperService.findAll();
     }
 
+    @GetMapping("/list")
+    public List<ExamPaper> listAllExamPapers() {
+        return examPaperService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ExamPaper> getExamPaperById(@PathVariable UUID id) {
         return examPaperService.findById(id)

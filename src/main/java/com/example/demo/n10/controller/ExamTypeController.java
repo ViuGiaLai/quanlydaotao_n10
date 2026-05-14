@@ -23,6 +23,11 @@ public class ExamTypeController {
         return examTypeService.findAll();
     }
 
+    @GetMapping("/list")
+    public List<ExamType> listAllExamTypes() {
+        return examTypeService.findAll();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ExamType> getExamTypeById(@PathVariable UUID id) {
         return examTypeService.findById(id)

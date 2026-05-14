@@ -47,5 +47,113 @@
               </div>
             
     </div>
+<<<<<<< HEAD
+=======
+
+    <th:block layout:fragment="script">
+        <script>
+            const USER_API_URL = "/api/users";
+            const USER_PAGE_SIZE = 10;
+            let userItems = [];
+            let userCurrentPage = 1;
+
+            async function loadUsers() {
+                try {
+                    const res = await fetch(USER_API_URL);
+                    const data = await res.json();
+                    userItems = Array.isArray(data) ? data : [];
+                    userCurrentPage = 1;
+                    renderUserTable();
+                } catch (error) {
+                    console.error("Load users error:", error);
+                    alert("Không thể tải người dùng.");
+                }
+            }
+
+            function renderUserTable() {
+                    const pageItems = AdminPagination.paginate(userItems, userCurrentPage, USER_PAGE_SIZE);
+                    let html = "";
+                    pageItems.forEach((user) => {
+                        html += `
+                            <tr>
+                                <td>${user.username || ""}</td>
+                                <td>${user.email || ""}</td>
+                                <td>${user.phone || ""}</td>
+                                <td><span class="badge ${user.isActive ? "text-bg-success" : "text-bg-danger"}">${user.isActive ? "Hoạt động" : "Vô hiệu"}</span></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick='editUser(${JSON.stringify(user)})'><i class="bi bi-pencil-square"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById("userTable").innerHTML = html;
+                    AdminPagination.render("userPagination", userItems.length, userCurrentPage, USER_PAGE_SIZE, (nextPage) => {
+                        userCurrentPage = nextPage;
+                        renderUserTable();
+                    });
+            }
+
+            function openUserModal() {
+                document.getElementById("userModalTitle").innerText = "Thêm Người Dùng";
+                document.getElementById("userId").value = "";
+                document.getElementById("userForm").reset();
+                $("#userModal").modal("show");
+            }
+
+            function editUser(user) {
+                document.getElementById("userModalTitle").innerText = "Sửa Người Dùng";
+                document.getElementById("userId").value = user.id || "";
+                document.getElementById("username").value = user.username || "";
+                document.getElementById("email").value = user.email || "";
+                document.getElementById("phone").value = user.phone || "";
+                document.getElementById("avatarUrl").value = user.avatarUrl || "";
+                document.getElementById("password").value = "";
+                $("#userModal").modal("show");
+            }
+
+            async function saveUser() {
+                const id = document.getElementById("userId").value;
+                const payload = new URLSearchParams({
+                    username: document.getElementById("username").value.trim(),
+                    password: document.getElementById("password").value.trim(),
+                    email: document.getElementById("email").value.trim(),
+                    phone: document.getElementById("phone").value.trim(),
+                    avatarUrl: document.getElementById("avatarUrl").value.trim()
+                });
+                const method = id ? "PUT" : "POST";
+                const url = id ? `${USER_API_URL}/${id}?${payload.toString()}` : `${USER_API_URL}?${payload.toString()}`;
+
+                try {
+                    const res = await fetch(url, { method });
+                    if (!res.ok) throw new Error("Save failed");
+                    $("#userModal").modal("hide");
+                    loadUsers();
+                } catch (error) {
+                    console.error("Save user error:", error);
+                    alert("Lưu người dùng thất bại.");
+                }
+            }
+
+            async function deleteUser(id) {
+                if (!confirm("Bạn có chắc muốn xóa người dùng này?")) return;
+                try {
+                    const res = await fetch(`${USER_API_URL}/${id}`, { method: "DELETE" });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        alert(err.message || "Xóa người dùng thất bại!");
+                        return;
+                    }
+                    loadUsers();
+                } catch (error) {
+                    console.error("Delete user error:", error);
+                    alert("Xóa người dùng thất bại.");
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", loadUsers);
+        </script>
+    </th:block>
+>>>>>>> 0d2f095 (update new UI viu)
 </body>
 </html>

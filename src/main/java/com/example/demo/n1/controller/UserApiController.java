@@ -45,4 +45,9 @@ public class UserApiController {
     public List<User> list() {
         return userService.findAll();
     }
+
+    @GetMapping("/list")
+    public List<User> listAll() {
+        return userService.findAll();
+    }
 }
