@@ -117,7 +117,7 @@
             let registrationItems = [];
             let currentPage = 1;
 
-            /* ---------------- LOAD ---------------- */
+            /*  LOAD  */
             async function loadRegistrations() {
                 try {
                     const res = await fetch(API_URL);
@@ -143,7 +143,7 @@
                 }
             }
 
-            /* ---------------- RENDER ---------------- */
+            /*  RENDER  */
             function renderTable() {
                 const start = (currentPage - 1) * PAGE_SIZE;
                 const pageItems = registrationItems.slice(start, start + PAGE_SIZE);
@@ -182,7 +182,7 @@
                 renderPagination();
             }
 
-            /* ---------------- PAGINATION ---------------- */
+            /*  PAGINATION  */
             function renderPagination() {
                 const totalPages = Math.ceil(registrationItems.length / PAGE_SIZE);
                 const div = document.getElementById("registrationPagination");
@@ -212,7 +212,7 @@
                 renderTable();
             }
 
-            /* ---------------- MODAL ---------------- */
+            /*  MODAL  */
             function openRegistrationModal() {
                 document.getElementById("modalTitle").innerText = "Thêm Đăng Ký Thi";
                 document.getElementById("registrationForm").reset();
@@ -245,7 +245,7 @@
                 modal.show();
             }
 
-            /* ---------------- SAVE ---------------- */
+            /*  SAVE  */
             async function saveRegistration() {
                 const id = document.getElementById("registrationId").value;
 
@@ -280,7 +280,7 @@
                 }
             }
 
-            /* ---------------- DELETE ---------------- */
+            /*  DELETE  */
             async function deleteRegistration(id) {
                 if (!confirm("Xóa đăng ký này?")) return;
 
@@ -288,7 +288,7 @@
                 loadRegistrations();
             }
 
-            /* ---------------- UTIL ---------------- */
+            /*  UTIL  */
             function escapeHtml(str) {
                 if (!str) return "";
                 return String(str)
