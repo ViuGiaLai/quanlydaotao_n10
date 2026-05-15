@@ -27,7 +27,7 @@ public class DepartmentService {
     }
 
     public List<Department> findActive() {
-        return repository.findByIsActive(true);
+        return repository.findByIsActiveTrue();
     }
 
     public Department save(Department obj) {

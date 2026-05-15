@@ -390,6 +390,12 @@
             <a th:href="@{/student/results}" th:classappend="${activePage == 'results'} ? 'active'">
                 <i class="fas fa-chart-scatter me-2"></i> Kết Quả Thi
             </a>
+            <a th:href="@{/student/academic-years}" th:classappend="${activePage == 'academic-years'} ? 'active'">
+                <i class="fas fa-calendar-alt me-2"></i> Niên Học
+            </a>
+            <a th:href="@{/student/advisor}" th:classappend="${activePage == 'advisor'} ? 'active'">
+                <i class="fas fa-user-tie me-2"></i> Cố Vấn Lớp
+            </a>
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                 <button type="submit" style="background: none; border: none; padding: 12px 20px; width: 100%; text-align: left; cursor: pointer; color: #f9efcf; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #527a66; font-weight: 500; letter-spacing: 0.3px; transition: 0.1s linear;">

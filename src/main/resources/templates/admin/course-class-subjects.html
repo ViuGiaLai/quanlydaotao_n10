@@ -5,6 +5,7 @@
 <head>
     <title>Phân Công Môn-Lớp - Admin</title>
     <th:block th:with="activePage='course-class-subjects'"></th:block>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -12,6 +13,39 @@
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-book"></i> Phân Công Môn-Lớp</h2>
+        </div>
+
+        <!-- Import Excel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-excel"></i> Import Excel</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary" onclick="downloadPCMTemplate()">
+                            <i class="fas fa-download"></i> Tải File Mẫu
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="file" class="form-control" id="pcmExcelFile" accept=".xlsx,.xls,.csv">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-warning" onclick="previewPCMExcel()">Xem Trước</button>
+                        <button class="btn btn-success" onclick="importPCMExcel()">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="card mb-4" id="pcmPreviewCard" style="display:none;">
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead><tr><th>STT</th><th>Mã Lớp</th><th>Mã Môn</th><th>Mã GV</th><th>Ghi Chú</th></tr></thead>
+                    <tbody id="pcmPreviewBody"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Chọn học kỳ và lớp -->
@@ -116,6 +150,106 @@
 
         let allSubjects = [];
         let allTeachers = [];
+        let pcmPreviewData = [];
+
+        function downloadPCMTemplate() {
+            const headers = ['STT', 'MaLop', 'MaMon', 'MaGV', 'GhiChu'];
+            const sample = [['1', 'KST23I', 'MATH101', 'GV001', 'Lớp chính']];
+            let csv = headers.join(',') + '\n';
+            sample.forEach(r => csv += r.join(',') + '\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'mau_import_phancong.csv';
+            link.click();
+        }
+
+        async function previewPCMExcel() {
+            const fileInput = document.getElementById('pcmExcelFile');
+            if (!fileInput.files[0]) { alert('Chọn file'); return; }
+            try {
+                const data = await readPCMFile(fileInput.files[0]);
+                pcmPreviewData = validatePCMData(data);
+                renderPCMPreview();
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
+
+        async function readPCMFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                const fileName = file.name.toLowerCase();
+                reader.onload = (e) => {
+                    try {
+                        if (fileName.endsWith('.csv')) {
+                            const text = e.target.result;
+                            const lines = text.split('\n').filter(l => l.trim());
+                            const data = lines.map(line => {
+                                const result = [];
+                                let current = '';
+                                let inQuotes = false;
+                                for (let i = 0; i < line.length; i++) {
+                                    const char = line[i];
+                                    if (char === '"') { inQuotes = !inQuotes; }
+                                    else if (char === ',' && !inQuotes) {
+                                        result.push(current.trim());
+                                        current = '';
+                                    } else { current += char; }
+                                }
+                                result.push(current.trim());
+                                return result;
+                            });
+                            resolve(data);
+                        } else {
+                            const wb = XLSX.read(e.target.result, { type: 'array' });
+                            const sheet = wb.Sheets[wb.SheetNames[0]];
+                            resolve(XLSX.utils.sheet_to_json(sheet, { header: 1 }));
+                        }
+                    } catch (err) { reject(err); }
+                };
+                reader.onerror = reject;
+                if (fileName.endsWith('.csv')) {
+                    reader.readAsText(file, 'UTF-8');
+                } else {
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+        }
+
+        function validatePCMData(data) {
+            return data.slice(1).filter(r => r && r.length >= 3).map(r => ({
+                stt: r[0], maLop: r[1], maMon: r[2], maGV: r[3], ghiChu: r[4],
+                isValid: !!r[1] && !!r[2], errorMsg: !r[1] || !r[2] ? 'Thiếu mã lớp/môn' : ''
+            }));
+        }
+
+        function renderPCMPreview() {
+            const tbody = document.getElementById('pcmPreviewBody');
+            document.getElementById('pcmPreviewCard').style.display = 'block';
+            let html = '';
+            pcmPreviewData.forEach((d, i) => {
+                html += `<tr class="${d.isValid?'table-success':'table-danger'}">
+                    <td>${i+1}</td><td>${d.maLop||''}</td><td>${d.maMon||''}</td>
+                    <td>${d.maGV||''}</td><td>${d.ghiChu||''}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function importPCMExcel() {
+            const validRows = pcmPreviewData.filter(d => d.isValid);
+            if (validRows.length === 0) { alert('Không có dữ liệu hợp lệ'); return; }
+            if (!confirm(`Import ${validRows.length} phân công?`)) return;
+            try {
+                const res = await fetch(API_CCS + '/import', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(validRows)
+                });
+                if (res.ok) {
+                    alert('Import thành công!');
+                    document.getElementById('pcmPreviewCard').style.display = 'none';
+                    loadCourseClasses();
+                } else { alert('Lỗi: ' + await res.text()); }
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
 
         // Load lookup data
         window.loadLookupData = async function () {
@@ -343,7 +477,9 @@
         let ccsData = [];
 
         // Init
-        loadLookupData();
+        window.addEventListener('DOMContentLoaded', function() {
+            loadLookupData();
+        });
     </script>
     </div>
 </body>

@@ -4,6 +4,7 @@
 
 <head>
     <title>Users</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
     <!-- CSS cho Modal thuần -->
     <style>
@@ -51,11 +52,88 @@
         <div class="app-content">
             <div class="container-fluid">
 
+                <!-- Import Excel -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-excel"></i> Import Excel Người Dùng (CSV/XLSX)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary" onclick="downloadNDTemplate()">
+                                    <i class="fas fa-download"></i> Tải File Mẫu
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="file" class="form-control" id="ndExcelFile" accept=".xlsx,.xls,.csv">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning" onclick="previewNDExcel()">Xem Trước</button>
+                                <button class="btn btn-success" onclick="importNDExcel()">Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="card mb-3" id="ndPreviewCard" style="display:none;">
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead><tr><th>STT</th><th>Username</th><th>Email</th><th>Vai trò</th><th>Trạng Thái</th></tr></thead>
+                            <tbody id="ndPreviewBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-12 text-end">
-                        <button class="btn btn-primary" onclick="openAddModal()">
-                            <i class="bi bi-person-plus"></i> Thêm Người Dùng
-                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="openAddModal()">
+                                <i class="bi bi-person-plus"></i> Thêm
+                            </button>
+                            <button class="btn btn-info" onclick="exportUserExcel()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button class="btn btn-success" onclick="toggleImportSection()">
+                                <i class="fas fa-upload"></i> Import
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import Section (collapsible) -->
+                <div class="card mb-3" id="importSection" style="display:none;">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-excel"></i> Import Excel (CSV/XLSX)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-primary" onclick="downloadNDTemplate()">
+                                    <i class="fas fa-file-download"></i> Tải File Mẫu
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="file" class="form-control" id="ndExcelFile" accept=".xlsx,.xls,.csv">
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-warning" onclick="previewNDExcel()">Xem Trước</button>
+                                <button class="btn btn-success" onclick="importNDExcel()">Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import Log -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Lịch Sử Import</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-bordered">
+                            <thead><tr><th>STT</th><th>File</th><th>Ngày</th><th>Tổng</th><th>OK</th><th>Lỗi</th><th>Người import</th><th></th></tr></thead>
+                            <tbody id="userImportLogTable"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -146,6 +224,188 @@
 
             let userItems = [];
             let currentPage = 1;
+            let ndPreviewData = [];
+
+            function toggleImportSection() {
+                const section = document.getElementById('importSection');
+                section.style.display = section.style.display === 'none' ? 'block' : 'none';
+            }
+
+            function exportUserExcel() {
+                if (userItems.length === 0) { alert('Không có dữ liệu'); return; }
+                const data = userItems.map((u, i) => ({
+                    STT: i + 1, Username: u.username, Email: u.email,
+                    Phone: u.phone, IsActive: u.isActive
+                }));
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Users');
+                XLSX.writeFile(wb, 'users_export.xlsx');
+            }
+
+            function downloadNDTemplate() {
+                const headers = ['STT', 'Username', 'Email', 'VaiTro', 'TrangThai'];
+                const sample = [['1', 'user001', 'user001@edu.vn', 'ROLE_STUDENT', 'true']];
+                let csv = headers.join(',') + '\n';
+                sample.forEach(r => csv += r.join(',') + '\n');
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'mau_import_nguoidung.csv';
+                link.click();
+            }
+
+            async function previewNDExcel() {
+                const fileInput = document.getElementById('ndExcelFile');
+                if (!fileInput.files[0]) { alert('Chọn file'); return; }
+                try {
+                    const data = await readNDFile(fileInput.files[0]);
+                    ndPreviewData = validateNDData(data);
+                    renderNDPreview();
+                } catch (e) { alert('Lỗi: ' + e.message); }
+            }
+
+            async function readNDFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    const fileName = file.name.toLowerCase();
+                    reader.onload = (e) => {
+                        try {
+                            if (fileName.endsWith('.csv')) {
+                                const text = e.target.result;
+                                const lines = text.split('\n').filter(l => l.trim());
+                                const data = lines.map(line => {
+                                    const result = [];
+                                    let current = '';
+                                    let inQuotes = false;
+                                    for (let i = 0; i < line.length; i++) {
+                                        const char = line[i];
+                                        if (char === '"') { inQuotes = !inQuotes; }
+                                        else if (char === ',' && !inQuotes) {
+                                            result.push(current.trim());
+                                            current = '';
+                                        } else { current += char; }
+                                    }
+                                    result.push(current.trim());
+                                    return result;
+                                });
+                                resolve(data);
+                            } else {
+                                const wb = XLSX.read(e.target.result, { type: 'array' });
+                                const sheet = wb.Sheets[wb.SheetNames[0]];
+                                resolve(XLSX.utils.sheet_to_json(sheet, { header: 1 }));
+                            }
+                        } catch (err) { reject(err); }
+                    };
+                    reader.onerror = reject;
+                    if (fileName.endsWith('.csv')) {
+                        reader.readAsText(file, 'UTF-8');
+                    } else {
+                        reader.readAsArrayBuffer(file);
+                    }
+                });
+            }
+
+            function validateNDData(data) {
+                return data.slice(1).filter(r => r && r.length >= 2).map(r => ({
+                    stt: r[0], username: r[1], email: r[2], vaiTro: r[3],
+                    trangThai: r[4],
+                    isValid: !!r[1] && !!r[2], errorMsg: !r[1] ? 'Thiếu username' : ''
+                }));
+            }
+
+            function renderNDPreview() {
+                const tbody = document.getElementById('ndPreviewBody');
+                document.getElementById('ndPreviewCard').style.display = 'block';
+                let html = '';
+                ndPreviewData.forEach((d, i) => {
+                    html += `<tr class="${d.isValid?'table-success':'table-danger'}">
+                        <td>${i+1}</td><td>${d.username||''}</td><td>${d.email||''}</td>
+                        <td>${d.vaiTro||''}</td><td>${d.trangThai||''}</td></tr>`;
+                });
+                tbody.innerHTML = html;
+            }
+
+            async function importNDExcel() {
+                const validRows = ndPreviewData.filter(d => d.isValid);
+                const errorRows = ndPreviewData.filter(d => !d.isValid);
+                if (validRows.length === 0 && errorRows.length === 0) { alert('Không có dữ liệu'); return; }
+                if (!confirm(`Import ${validRows.length} người dùng?`)) return;
+                try {
+                    const res = await fetch(API_URL + '/import', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(validRows)
+                    });
+                    if (res.ok) {
+                        // Save import log
+                        const logData = {
+                            module: 'users',
+                            filename: document.getElementById('ndExcelFile').value.split('\\').pop(),
+                            totalRows: ndPreviewData.length,
+                            successRows: validRows.length,
+                            errorRows: errorRows.length,
+                            importedBy: 'admin',
+                            errorDetails: JSON.stringify(errorRows)
+                        };
+                        await fetch('/api/import-logs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(logData)
+                        });
+                        
+                        if (errorRows.length > 0) {
+                            if (confirm(`Import thành công! Có ${errorRows.length} dòng lỗi. Tải file lỗi?`)) {
+                                exportUserErrorRows(errorRows, 'users_loi');
+                            }
+                        } else {
+                            alert('Import thành công!');
+                        }
+                        document.getElementById('ndPreviewCard').style.display = 'none';
+                        loadUsers();
+                        loadUserImportLog();
+                    } else { alert('Lỗi: ' + await res.text()); }
+                } catch (e) { alert('Lỗi: ' + e.message); }
+            }
+
+            function exportUserErrorRows(errors, filename) {
+                const data = errors.map(e => ({
+                    STT: e.stt, Username: e.username, Email: e.email,
+                    VaiTro: e.vaiTro, TrangThai: e.trangThai, Loi: e.errorMsg
+                }));
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Loi');
+                XLSX.writeFile(wb, filename + '.xlsx');
+            }
+
+            async function loadUserImportLog() {
+                try {
+                    const res = await fetch('/api/import-logs/users');
+                    const logs = await res.json();
+                    let html = '';
+                    logs.forEach((l, i) => {
+                        const date = l.importedAt ? new Date(l.importedAt).toLocaleString('vi-VN') : '';
+                        html += `<tr>
+                            <td>${i+1}</td><td>${l.filename||''}</td><td>${date}</td>
+                            <td>${l.totalRows||0}</td><td class="text-success">${l.successRows||0}</td>
+                            <td class="text-danger">${l.errorRows||0}</td><td>${l.importedBy||''}</td>
+                            <td>${l.errorRows > 0 ? `<button class="btn btn-sm btn-outline-danger" onclick="downloadUserErrorLog('${l.id}')"><i class="fas fa-download"></i></button>` : ''}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('userImportLogTable').innerHTML = html || '<tr><td colspan="8" class="text-muted">Chưa có lịch sử import</td></tr>';
+                } catch (e) { console.error(e); }
+            }
+
+            async function downloadUserErrorLog(id) {
+                try {
+                    const res = await fetch('/api/import-logs/' + id);
+                    const log = await res.json();
+                    if (log.errorDetails) {
+                        const errors = JSON.parse(log.errorDetails);
+                        exportUserErrorRows(errors, 'users_loi_' + log.id);
+                    }
+                } catch (e) { alert('Lỗi: ' + e.message); }
+            }
 
             async function loadUsers() {
                 try {
@@ -297,6 +557,7 @@
             /* ================= INIT ================= */
             document.addEventListener("DOMContentLoaded", () => {
                 loadUsers();
+                loadUserImportLog();
 
                 // Click backdrop to close
                 const modal = document.getElementById('userModal');

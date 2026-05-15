@@ -17,10 +17,10 @@ public interface ExamRoomRepository extends JpaRepository<ExamRoom, UUID> {
     List<ExamRoom> findByRoomId(UUID roomId);
     
     // Tìm theo trạng thái hoạt động
-    List<ExamRoom> findByIsActive(Boolean isActive);
+    List<ExamRoom> findByIsActiveTrue();
     
     // Tìm theo examId và isActive
-    List<ExamRoom> findByExamIdAndIsActive(UUID examId, Boolean isActive);
+    List<ExamRoom> findByExamIdAndIsActiveTrue(UUID examId);
     
     // Tìm chi tiết theo id
     Optional<ExamRoom> findById(UUID id);

@@ -70,4 +70,10 @@ public class StudentController {
         return service.search(full_name);
     }
 
+    // IMPORT EXCEL
+    @PostMapping("/import")
+    public List<Student> importExcel(@RequestBody List<Student> students) {
+        return service.importBatch(students);
+    }
+
 }

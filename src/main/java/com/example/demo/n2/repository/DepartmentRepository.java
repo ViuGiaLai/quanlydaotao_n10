@@ -11,6 +11,6 @@ import com.example.demo.n2.model.entity.Department;
 
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, UUID> {
-    Optional<Department> findByDepartmentCode(String departmentCode);
-    List<Department> findByIsActive(Boolean isActive);
+    Optional<Department> findByCode(String code);
+    List<Department> findByIsActiveTrue();
 }

@@ -487,6 +487,11 @@
                             </a>
                         </li>
                         <li>
+                            <a th:href="@{/teacher/academic-years}" class="nav-link ps-4" th:classappend="${activePage == 'academic-years'} ? 'active'">
+                                <i class="fas fa-calendar-alt me-2"></i> Niên Học
+                            </a>
+                        </li>
+                        <li>
                             <form th:action="@{/logout}" method="post" class="p-0 m-0">
                                 <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                                 <button type="submit" class="nav-link ps-4" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; color: #f9efcf; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #527a66; font-weight: 500; letter-spacing: 0.3px; transition: 0.1s linear;">
@@ -513,6 +518,11 @@
                         <li>
                             <a th:href="@{/teacher/students}" class="nav-link ps-4" th:classappend="${activePage == 'students'} ? 'active'">
                                 <i class="fas fa-users me-2"></i> Danh sách sinh viên
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/teacher/advisors}" class="nav-link ps-4" th:classappend="${activePage == 'advisors'} ? 'active'">
+                                <i class="fas fa-user-tie me-2"></i> Cố Vấn Lớp
                             </a>
                         </li>
                     </ul>

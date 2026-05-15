@@ -42,4 +42,14 @@ public class StudentClasseSectionService {
     public void deleteById(UUID id) {
         studentClasseSectionRepository.deleteById(id);
     }
+
+    public List<StudentClasseSection> importBatch(List<StudentClasseSection> items) {
+        return items.stream()
+                .map(item -> {
+                    item.setCreatedAt(java.time.LocalDateTime.now());
+                    item.setIsActive(true);
+                    return studentClasseSectionRepository.save(item);
+                })
+                .toList();
+    }
 }

@@ -42,7 +42,7 @@ public class ExamRoomService {
 
     // Lấy theo trạng thái hoạt động
     public List<ExamRoom> getActiveExamRooms() {
-        return examRoomRepository.findByIsActive(true);
+        return examRoomRepository.findByIsActiveTrue();
     }
 
     // Lấy chi tiết theo id

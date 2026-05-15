@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{teacher/layout}">
+
+<head>
+    <title>Cố Vấn Lớp - Giảng Viên</title>
+    <th:block th:with="activePage='advisors'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-tie"></i> Quản Lý Cố Vấn Lớp</h2>
+        </div>
+
+        <!-- Form thêm mới -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Phân Cố Vấn Lớp</h5>
+            </div>
+            <div class="card-body">
+                <form id="advisorForm">
+                    <input type="hidden" id="advisorId">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã Giảng Viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="employeeId" required placeholder="GV001">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Mã Lớp Sinh Viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="studentClasseId" required placeholder="KST23I">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kích Hoạt</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">Hoạt động</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày Bắt Đầu</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày Kết Thúc</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Cố Vấn Lớp</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã GV</th>
+                            <th>Tên Giảng Viên</th>
+                            <th>Mã Lớp</th>
+                            <th>Tên Lớp</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="advisorTable">
+                        <tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/advisor-classe-sections';
+        let advisorItems = [];
+
+        async function loadAdvisors() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                advisorItems = Array.isArray(data) ? data : [];
+                renderTable();
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById("advisorTable").innerHTML = 
+                    `<tr><td colspan="9" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById("advisorTable");
+            if (advisorItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            advisorItems.forEach((a, index) => {
+                const startDate = a.startDate ? new Date(a.startDate).toLocaleDateString('vi-VN') : '-';
+                const endDate = a.endDate ? new Date(a.endDate).toLocaleDateString('vi-VN') : '-';
+                const isActive = a.isActive !== false ? 
+                    '<span class="badge bg-success">Hoạt động</span>' : 
+                    '<span class="badge bg-secondary">Khóa</span>';
+                
+                const empName = a.employee ? a.employee.fullname : (a.employeeId || '-');
+                const classeName = a.studentClasse ? a.studentClasse.name : (a.studentClasseId || '-');
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${a.employeeId || '-'}</td>
+                        <td>${empName}</td>
+                        <td>${a.studentClasseId || '-'}</td>
+                        <td>${classeName}</td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                        <td>${isActive}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm me-1" onclick="editAdvisor('${a.id}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAdvisor('${a.id}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function editAdvisor(id) {
+            try {
+                const res = await fetch(`${API_URL}/${id}`);
+                const a = await res.json();
+                
+                document.getElementById("advisorId").value = a.id;
+                document.getElementById("employeeId").value = a.employeeId || '';
+                document.getElementById("studentClasseId").value = a.studentClasseId || '';
+                document.getElementById("startDate").value = a.startDate ? a.startDate.split('T')[0] : '';
+                document.getElementById("endDate").value = a.endDate ? a.endDate.split('T')[0] : '';
+                document.getElementById("isActive").checked = a.isActive !== false;
+                
+                document.getElementById("advisorForm").scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                console.error("Edit error:", e);
+            }
+        }
+
+        async function deleteAdvisor(id) {
+            if (!confirm('Bạn có chắc muốn xóa?')) return;
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadAdvisors();
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        document.getElementById("advisorForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById("advisorId").value;
+            const data = {
+                employeeId: document.getElementById("employeeId").value,
+                studentClasseId: document.getElementById("studentClasseId").value,
+                startDate: document.getElementById("startDate").value ? document.getElementById("startDate").value + 'T00:00:00' : null,
+                endDate: document.getElementById("endDate").value ? document.getElementById("endDate").value + 'T00:00:00' : null,
+                isActive: document.getElementById("isActive").checked
+            };
+            
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) {
+                    const err = await res.text();
+                    alert('Lỗi: ' + err);
+                    return;
+                }
+                
+                document.getElementById("advisorForm").reset();
+                document.getElementById("advisorId").value = '';
+                loadAdvisors();
+                alert('Lưu thành công!');
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        });
+
+        loadAdvisors();
+    </script>
+    </div>
+</body>
+</html>

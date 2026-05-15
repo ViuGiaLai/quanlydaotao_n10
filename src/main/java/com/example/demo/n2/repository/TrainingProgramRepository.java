@@ -11,6 +11,6 @@ import com.example.demo.n2.model.entity.TrainingProgram;
 
 @Repository
 public interface TrainingProgramRepository extends JpaRepository<TrainingProgram, UUID> {
-    Optional<TrainingProgram> findByProgramCode(String programCode);
-    List<TrainingProgram> findByIsActive(Boolean isActive);
+    Optional<TrainingProgram> findByCode(String code);
+    List<TrainingProgram> findByIsActiveTrue();
 }

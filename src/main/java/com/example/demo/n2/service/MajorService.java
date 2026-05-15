@@ -31,7 +31,7 @@ public class MajorService {
     }
 
     public List<Major> findActive() {
-        return repository.findByIsActive(true);
+        return repository.findByIsActiveTrue();
     }
 
     public Major save(Major obj) {

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{student/layout}">
+
+<head>
+    <title>Cố Vấn Lớp - Sinh Viên</title>
+    <th:block th:with="activePage='advisor'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-tie"></i> Cố Vấn Lớp</h2>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-circle"></i> Thông Tin Cố Vấn</h5>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center text-muted py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Đang tải thông tin cố vấn...</p>
+                </div>
+                <div id="content" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%" class="text-end">Mã Giảng Viên:</th>
+                                    <td id="employeeId" class="fw-bold">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Họ Tên:</th>
+                                    <td id="employeeName">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Email:</th>
+                                    <td id="employeeEmail">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Số Điện Thoại:</th>
+                                    <td id="employeePhone">-</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%" class="text-end">Mã Lớp:</th>
+                                    <td id="classeId" class="fw-bold">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Tên Lớp:</th>
+                                    <td id="classeName">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Ngày Bắt Đầu:</th>
+                                    <td id="startDate">-</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Ngày Kết Thúc:</th>
+                                    <td id="endDate">-</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="noData" class="text-center text-muted py-5" style="display: none;">
+                    <i class="fas fa-user-slash fa-2x"></i>
+                    <p class="mt-2">Bạn chưa được phân cố vấn lớp</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Lịch Sử Cố Vấn</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã GV</th>
+                            <th>Tên Giảng Viên</th>
+                            <th>Mã Lớp</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lấy studentClasseId từ session (nếu có)
+        let studentClasseId = null;
+        
+        // Thử lấy từ biến global của server
+        const studentData = window.studentData || null;
+        if (studentData && studentData.studentClasseId) {
+            studentClasseId = studentData.studentClasseId;
+        }
+
+        async function loadAdvisor() {
+            try {
+                let url = '/api/advisor-classe-sections';
+                if (studentClasseId) {
+                    url += `?studentClasseId=${studentClasseId}`;
+                }
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data && data.length > 0) {
+                    // Lọc các bản ghi đang hoạt động
+                    const activeAdvisor = data.find(a => a.isActive !== false);
+                    const advisor = activeAdvisor || data[0];
+                    
+                    if (advisor) {
+                        document.getElementById('employeeId').textContent = advisor.employeeId || '-';
+                        document.getElementById('classeId').textContent = advisor.studentClasseId || '-';
+                        document.getElementById('startDate').textContent = advisor.startDate 
+                            ? new Date(advisor.startDate).toLocaleDateString('vi-VN') 
+                            : '-';
+                        document.getElementById('endDate').textContent = advisor.endDate 
+                            ? new Date(advisor.endDate).toLocaleDateString('vi-VN') 
+                            : '-';
+                        
+                        // Nếu có thông tin employee chi tiết
+                        if (advisor.employee) {
+                            document.getElementById('employeeName').textContent = advisor.employee.fullname || '-';
+                            document.getElementById('employeeEmail').textContent = advisor.employee.email || '-';
+                            document.getElementById('employeePhone').textContent = advisor.employee.phone || '-';
+                        } else {
+                            document.getElementById('employeeName').textContent = '-';
+                            document.getElementById('employeeEmail').textContent = '-';
+                            document.getElementById('employeePhone').textContent = '-';
+                        }
+                        
+                        // Nếu có thông tin lớp chi tiết
+                        if (advisor.studentClasse) {
+                            document.getElementById('classeName').textContent = advisor.studentClasse.name || '-';
+                        } else {
+                            document.getElementById('classeName').textContent = '-';
+                        }
+                        
+                        document.getElementById('content').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('noData').style.display = 'block';
+                }
+            } catch (e) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('noData').style.display = 'block';
+                console.error('Error:', e);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                let url = '/api/advisor-classe-sections';
+                if (studentClasseId) {
+                    url += `?studentClasseId=${studentClasseId}`;
+                }
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                const tbody = document.getElementById('historyTable');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                data.forEach((a, i) => {
+                    const startDate = a.startDate ? new Date(a.startDate).toLocaleDateString('vi-VN') : '-';
+                    const endDate = a.endDate ? new Date(a.endDate).toLocaleDateString('vi-VN') : '-';
+                    const status = a.isActive !== false 
+                        ? '<span class="badge bg-success">Hoạt động</span>' 
+                        : '<span class="badge bg-secondary">Đã kết thúc</span>';
+                    
+                    const empName = a.employee ? a.employee.fullname : (a.employeeId || '-');
+                    const classeId = a.studentClasseId || '-';
+                    
+                    html += `<tr>
+                        <td>${i + 1}</td>
+                        <td>${a.employeeId || '-'}</td>
+                        <td>${empName}</td>
+                        <td>${classeId}</td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } catch (e) {
+                document.getElementById('historyTable').innerHTML = 
+                    `<tr><td colspan="7" class="text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        loadAdvisor();
+        loadHistory();
+    </script>
+    </div>
+</body>
+</html>

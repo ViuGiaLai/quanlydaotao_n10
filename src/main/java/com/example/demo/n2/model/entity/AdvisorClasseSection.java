@@ -20,10 +20,10 @@ public class AdvisorClasseSection {
     @Column(name = "student_classe_id", columnDefinition = "UNIQUEIDENTIFIER")
     private UUID studentClasseId;
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", columnDefinition = "DATETIME")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", columnDefinition = "DATETIME")
     private LocalDateTime endDate;
 
     @Column(name = "created_at")

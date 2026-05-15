@@ -36,10 +36,10 @@ public class CourseClass {
     @Column(name = "current_students")
     private Integer currentStudents;
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", columnDefinition = "DATETIME")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", columnDefinition = "DATETIME")
     private LocalDateTime endDate;
 
     @Column(name = "created_at", nullable = false)

@@ -45,4 +45,11 @@ public class CourseClassSubjectController {
         repository.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/import")
+    public List<CourseClassSubject> importExcel(@RequestBody List<CourseClassSubject> items) {
+        return items.stream()
+                .map(repository::save)
+                .toList();
+    }
 }

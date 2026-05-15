@@ -83,6 +83,8 @@
     <script>
         const API_URL = '/api/academic-years';
         let items = [];
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
 
         async function load() {
             try {
@@ -95,15 +97,19 @@
         }
 
         function render() {
-            let html = items.length ? '' : '<tr><td colspan="7" class="text-muted">Chưa có dữ liệu</td></tr>';
-            items.forEach((o, i) => {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const paged = items.slice(start, start + PAGE_SIZE);
+            const totalPages = Math.ceil(items.length / PAGE_SIZE);
+            
+            let html = paged.length ? '' : '<tr><td colspan="7" class="text-muted">Chưa có dữ liệu</td></tr>';
+            paged.forEach((o, i) => {
                 const status = o.isActive !== false ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-secondary">Khóa</span>';
                 html += `<tr>
-                    <td>${i+1}</td>
+                    <td>${start + i + 1}</td>
                     <td>${o.code}</td>
                     <td>${o.name}</td>
-                    <td>${o.startYear}</td>
-                    <td>${o.endYear}</td>
+                    <td>${o.year || '-'}</td>
+                    <td>${o.description || '-'}</td>
                     <td>${status}</td>
                     <td>
                         <button class="btn btn-primary btn-sm me-1" onclick="edit('${o.id}')">Sửa</button>
@@ -111,7 +117,24 @@
                     </td>
                 </tr>`;
             });
-            document.getElementById("tableBody").innerHTML = html;
+            
+            // Pagination
+            let pg = '';
+            if (totalPages > 1) {
+                pg = `<tr><td colspan="7" class="text-center">
+                    <nav><ul class="pagination justify-content-center mb-0">`;
+                for (let p = 1; p <= totalPages; p++) {
+                    pg += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="goPage(${p});return false;">${p}</a></li>`;
+                }
+                pg += `</ul></nav></td></tr>`;
+            }
+            document.getElementById("tableBody").innerHTML = html + pg;
+        }
+
+        function goPage(p) {
+            currentPage = p;
+            render();
         }
 
         async function edit(id) {
@@ -120,9 +143,11 @@
             document.getElementById("id").value = o.id;
             document.getElementById("code").value = o.code || '';
             document.getElementById("name").value = o.name || '';
-            document.getElementById("startYear").value = o.startYear || '';
-            document.getElementById("endYear").value = o.endYear || '';
+            document.getElementById("year").value = o.year || '';
+            document.getElementById("description").value = o.description || '';
             document.getElementById("isActive").checked = o.isActive !== false;
+            // Scroll lên form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function del(id) {
@@ -137,8 +162,8 @@
             const data = {
                 code: document.getElementById("code").value,
                 name: document.getElementById("name").value,
-                startYear: parseInt(document.getElementById("startYear").value),
-                endYear: parseInt(document.getElementById("endYear").value),
+                year: document.getElementById("year").value,
+                description: document.getElementById("description").value,
                 isActive: document.getElementById("isActive").checked
             };
             const method = id ? 'PUT' : 'POST';

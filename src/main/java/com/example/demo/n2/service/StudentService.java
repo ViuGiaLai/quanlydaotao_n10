@@ -69,4 +69,14 @@ public class StudentService {
     public void delete(UUID id) {
         deleteById(id);
     }
+
+    public List<Student> importBatch(List<Student> students) {
+        return students.stream()
+                .map(s -> {
+                    s.setCreatedAt(LocalDateTime.now());
+                    s.setIsActive(true);
+                    return studentRepository.save(s);
+                })
+                .toList();
+    }
 }

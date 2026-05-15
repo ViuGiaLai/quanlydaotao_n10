@@ -27,7 +27,7 @@ public class TrainingProgramService {
     }
 
     public List<TrainingProgram> findActive() {
-        return repository.findByIsActive(true);
+        return repository.findByIsActiveTrue();
     }
 
     public TrainingProgram save(TrainingProgram obj) {

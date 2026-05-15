@@ -20,16 +20,16 @@ public class AcademicYear {
     @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(name = "year")
-    private Integer year;
+    @Column(name = "year", columnDefinition = "NVARCHAR(20)")
+    private String year;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", columnDefinition = "DATETIME")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", columnDefinition = "DATETIME")
     private LocalDateTime endDate;
 
     @Column(name = "is_active")
@@ -64,8 +64,8 @@ public class AcademicYear {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public Integer getYear() { return year; }
-    public void setYear(Integer year) { this.year = year; }
+    public String getYear() { return year; }
+    public void setYear(String year) { this.year = year; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

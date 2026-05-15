@@ -27,7 +27,7 @@ public class AcademicYearService {
     }
 
     public List<AcademicYear> findActive() {
-        return repository.findByIsActive(true);
+        return repository.findByIsActiveTrue();
     }
 
     public AcademicYear save(AcademicYear obj) {

@@ -149,27 +149,27 @@
         }
 
         function renderDropdowns() {
-            // Academic Years
+            // Academic Years - field: name
             let html = '<option value="">-- Chọn Niên Học --</option>';
-            academicYears.forEach(o => html += `<option value="${o.id}">${o.yearName}</option>`);
+            academicYears.forEach(o => html += `<option value="${o.id}">${o.name}</option>`);
             document.getElementById("academicYearId").innerHTML = html;
 
-            // Departments
+            // Departments - field: name
             html = '<option value="">-- Chọn Khoa --</option>';
-            departments.forEach(o => html += `<option value="${o.id}">${o.departmentName}</option>`);
+            departments.forEach(o => html += `<option value="${o.id}">${o.name}</option>`);
             document.getElementById("departmentId").innerHTML = html;
 
-            // Majors
+            // Majors - field: name
             html = '<option value="">-- Chọn Ngành --</option>';
-            majors.forEach(o => html += `<option value="${o.id}">${o.majorName}</option>`);
+            majors.forEach(o => html += `<option value="${o.id}">${o.name}</option>`);
             document.getElementById("majorId").innerHTML = html;
 
-            // Training Programs
+            // Training Programs - field: name
             html = '<option value="">-- Chọn CTĐT --</option>';
-            trainingPrograms.forEach(o => html += `<option value="${o.id}">${o.programName}</option>`);
+            trainingPrograms.forEach(o => html += `<option value="${o.id}">${o.name}</option>`);
             document.getElementById("trainingProgramId").innerHTML = html;
 
-            // Teachers
+            // Teachers - field: fullname
             html = '<option value="">-- Chọn Giảng Viên --</option>';
             teachers.forEach(o => html += `<option value="${o.id}">${o.fullname}</option>`);
             document.getElementById("employeeId").innerHTML = html;
@@ -196,10 +196,10 @@
                         <td>${index + 1}</td>
                         <td>${c.code || '-'}</td>
                         <td>${c.name || '-'}</td>
-                        <td>${ac ? ac.yearName : '-'}</td>
-                        <td>${dept ? dept.departmentName : '-'}</td>
-                        <td>${major ? major.majorName : '-'}</td>
-                        <td>${train ? train.programName : '-'}</td>
+                        <td>${ac ? ac.name : '-'}</td>
+                        <td>${dept ? dept.name : '-'}</td>
+                        <td>${major ? major.name : '-'}</td>
+                        <td>${train ? train.name : '-'}</td>
                         <td>${isActive}</td>
                         <td>
                             <button class="btn btn-primary btn-sm me-1" onclick="editClasse('${c.id}')">

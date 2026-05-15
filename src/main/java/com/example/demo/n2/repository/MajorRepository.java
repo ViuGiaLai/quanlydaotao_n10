@@ -11,7 +11,7 @@ import com.example.demo.n2.model.entity.Major;
 
 @Repository
 public interface MajorRepository extends JpaRepository<Major, UUID> {
-    Optional<Major> findByMajorCode(String majorCode);
+    Optional<Major> findByCode(String code);
     List<Major> findByDepartmentId(UUID departmentId);
-    List<Major> findByIsActive(Boolean isActive);
+    List<Major> findByIsActiveTrue();
 }

@@ -69,4 +69,10 @@ public class StudentClasseSectionController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/import")
+    public ResponseEntity<List<StudentClasseSection>> importExcel(@RequestBody List<StudentClasseSection> items) {
+        List<StudentClasseSection> saved = service.importBatch(items);
+        return ResponseEntity.ok(saved);
+    }
 }

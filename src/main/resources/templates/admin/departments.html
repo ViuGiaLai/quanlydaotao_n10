@@ -98,6 +98,8 @@
     <script>
         const API_URL = '/api/departments';
         let items = [];
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
 
         async function load() {
             try {
@@ -110,11 +112,15 @@
         }
 
         function render() {
-            let html = items.length ? '' : '<tr><td colspan="8" class="text-muted">Chưa có dữ liệu</td></tr>';
-            items.forEach((o, i) => {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const paged = items.slice(start, start + PAGE_SIZE);
+            const totalPages = Math.ceil(items.length / PAGE_SIZE);
+            
+            let html = paged.length ? '' : '<tr><td colspan="8" class="text-muted">Chưa có dữ liệu</td></tr>';
+            paged.forEach((o, i) => {
                 const status = o.isActive !== false ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-secondary">Khóa</span>';
                 html += `<tr>
-                    <td>${i+1}</td>
+                    <td>${start + i + 1}</td>
                     <td>${o.code}</td>
                     <td>${o.name}</td>
                     <td>${o.deanName || '-'}</td>
@@ -127,7 +133,23 @@
                     </td>
                 </tr>`;
             });
-            document.getElementById("tableBody").innerHTML = html;
+            
+            let pg = '';
+            if (totalPages > 1) {
+                pg = `<tr><td colspan="8" class="text-center">
+                    <nav><ul class="pagination justify-content-center mb-0">`;
+                for (let p = 1; p <= totalPages; p++) {
+                    pg += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="goPage(${p});return false;">${p}</a></li>`;
+                }
+                pg += `</ul></nav></td></tr>`;
+            }
+            document.getElementById("tableBody").innerHTML = html + pg;
+        }
+
+        function goPage(p) {
+            currentPage = p;
+            render();
         }
 
         async function edit(id) {
@@ -142,6 +164,7 @@
             document.getElementById("officeLocation").value = o.officeLocation || '';
             document.getElementById("description").value = o.description || '';
             document.getElementById("isActive").checked = o.isActive !== false;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function del(id) {

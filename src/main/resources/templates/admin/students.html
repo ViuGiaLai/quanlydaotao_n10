@@ -5,12 +5,91 @@
 <head>
     <title>Quản Lý Sinh Viên - Admin</title>
     <th:block th:with="activePage='students'"></th:block>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div layout:fragment="content">
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-user-graduate"></i> Quản Lý Sinh Viên</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Thêm
+                </button>
+                <button class="btn btn-info" onclick="exportStudentExcel()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-success" onclick="toggleImportSection()">
+                    <i class="fas fa-upload"></i> Import
+                </button>
+            </div>
+        </div>
+
+        <!-- Import Excel (collapsible) -->
+        <div class="card mb-4" id="importSection" style="display:none;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-excel"></i> Import Excel (CSV/XLSX)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary" onclick="downloadStudentTemplate()">
+                            <i class="fas fa-file-download"></i> Tải File Mẫu
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="file" class="form-control" id="studentExcelFile" accept=".xlsx,.xls,.csv">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-warning" onclick="previewStudentExcel()">
+                            <i class="fas fa-eye"></i> Xem Trước
+                        </button>
+                        <button class="btn btn-success" onclick="importStudentExcel()">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="card mb-4" id="studentPreviewCard" style="display:none;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table"></i> Xem Trước</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger" id="studentValidationErrors"></div>
+                <table class="table table-bordered" id="studentPreviewTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Giới Tính</th>
+                            <th>Ngày Sinh</th>
+                            <th>CMND</th>
+                            <th>Email</th>
+                            <th>Điện Thoại</th>
+                            <th>Trạng Thái</th>
+                            <th>Hợp Lệ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentPreviewBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Import Log -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Lịch Sử Import</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered">
+                    <thead><tr><th>STT</th><th>File</th><th>Ngày</th><th>Tổng</th><th>OK</th><th>Lỗi</th><th>Người import</th><th></th></tr></thead>
+                    <tbody id="studentImportLogTable"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Form thêm/sửa -->
@@ -19,7 +98,7 @@
                 <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Thêm/Sửa Sinh Viên</h5>
             </div>
             <div class="card-body">
-                <form id="studentForm">
+                <form id="studentForm" onsubmit="saveStudent(event)">
                     <input type="hidden" id="studentId">
                     <!-- Row 1: Thông tin cơ bản -->
                     <div class="row">
@@ -178,6 +257,271 @@
         let trainingPrograms = [];
         let studentClasses = [];
         let currentPage = 1;
+        let studentPreviewData = [];
+
+        function toggleImportSection() {
+            const section = document.getElementById('importSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openAddModal() {
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentForm').reset();
+            window.scrollTo({ top: 100, behavior: 'smooth' });
+        }
+
+        async function saveStudent(e) {
+            e.preventDefault();
+            const id = document.getElementById('studentId').value;
+            const data = {
+                code: document.getElementById('code').value,
+                fullname: document.getElementById('fullname').value,
+                gender: document.getElementById('gender').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                personalIdentificationNumber: document.getElementById('personalIdentificationNumber').value,
+                dateOfIssue: document.getElementById('dateOfIssue').value,
+                cardPlace: document.getElementById('cardPlace').value,
+                address: document.getElementById('address').value,
+                currentAddress: document.getElementById('currentAddress').value,
+                status: document.getElementById('status').value,
+                admissionYear: document.getElementById('admissionYear').value,
+                departmentId: document.getElementById('departmentId').value,
+                majorId: document.getElementById('majorId').value,
+                trainingProgramId: document.getElementById('trainingProgramId').value,
+                studentClasseId: document.getElementById('studentClasseId').value,
+                isActive: document.getElementById('isActive').checked
+            };
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert(id ? 'Cập nhật thành công!' : 'Thêm thành công!');
+                    document.getElementById('studentForm').reset();
+                    document.getElementById('studentId').value = '';
+                    loadStudents();
+                } else {
+                    alert('Lỗi: ' + await res.text());
+                }
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            }
+        }
+
+        function exportStudentExcel() {
+            if (studentItems.length === 0) { alert('Không có dữ liệu'); return; }
+            const data = studentItems.map((s, i) => ({
+                STT: i + 1, MaSV: s.code, HoTen: s.fullname,
+                GioiTinh: s.gender, NgaySinh: s.dateOfBirth,
+                CMND: s.cmnd, DiaChi: s.address,
+                Email: s.email, DienThoai: s.phone,
+                TrangThai: s.status
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'SinhVien');
+            XLSX.writeFile(wb, 'sinhvien_export.xlsx');
+        }
+
+        // Download template
+        function downloadStudentTemplate() {
+            const headers = ['STT', 'MaSinhVien', 'HoTen', 'GioiTinh', 'NgaySinh', 'CMND', 'NgayCap', 'NoiCap', 'DiaChi', 'Email', 'DienThoai', 'TrangThai'];
+            const sample = [
+                ['1', 'SV001', 'Nguyen Van A', 'Nam', '2004-01-15', '012345678901', '2020-01-01', 'TP.HCM', '123 Đường 1, TP.HCM', 'sv001@edu.vn', '0912345678', 'Đang học'],
+                ['2', 'SV002', 'Tran Thi B', 'Nữ', '2004-03-20', '012345678902', '2020-01-01', 'TP.HCM', '456 Đường 2, TP.HCM', 'sv002@edu.vn', '0912345679', 'Đang học']
+            ];
+            let csv = headers.join(',') + '\n';
+            sample.forEach(row => csv += row.join(',') + '\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'mau_import_sinhvien.csv';
+            link.click();
+        }
+
+        // Preview Excel
+        async function previewStudentExcel() {
+            const fileInput = document.getElementById('studentExcelFile');
+            if (!fileInput.files[0]) {
+                alert('Vui lòng chọn file Excel');
+                return;
+            }
+            try {
+                const data = await readExcelFile(fileInput.files[0]);
+                studentPreviewData = validateStudentData(data);
+                renderStudentPreview();
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        async function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                const fileName = file.name.toLowerCase();
+                reader.onload = (e) => {
+                    try {
+                        if (fileName.endsWith('.csv')) {
+                            const text = e.target.result;
+                            const lines = text.split('\n').filter(l => l.trim());
+                            const data = lines.map(line => {
+                                const result = [];
+                                let current = '';
+                                let inQuotes = false;
+                                for (let i = 0; i < line.length; i++) {
+                                    const char = line[i];
+                                    if (char === '"') { inQuotes = !inQuotes; }
+                                    else if (char === ',' && !inQuotes) {
+                                        result.push(current.trim());
+                                        current = '';
+                                    } else { current += char; }
+                                }
+                                result.push(current.trim());
+                                return result;
+                            });
+                            resolve(data);
+                        } else {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                            resolve(json);
+                        }
+                    } catch (err) { reject(err); }
+                };
+                reader.onerror = reject;
+                if (fileName.endsWith('.csv')) {
+                    reader.readAsText(file, 'UTF-8');
+                } else {
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+        }
+
+        function validateStudentData(data) {
+            const validData = [];
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 2) continue;
+                const isValid = row[1] && row[2];
+                validData.push({
+                    stt: row[0], maSV: row[1], hoTen: row[2], gioiTinh: row[3] || 'Nam',
+                    ngaySinh: row[4], cmnd: row[5], ngayCap: row[6], noiCap: row[7],
+                    diaChi: row[8], email: row[9], dienThoai: row[10], trangThai: row[11] || 'Đang học',
+                    isValid: isValid, errorMsg: isValid ? '' : 'Thiếu mã SV hoặc họ tên'
+                });
+            }
+            return validData;
+        }
+
+        function renderStudentPreview() {
+            const tbody = document.getElementById('studentPreviewBody');
+            const errorDiv = document.getElementById('studentValidationErrors');
+            document.getElementById('studentPreviewCard').style.display = 'block';
+            const invalidCount = studentPreviewData.filter(d => !d.isValid).length;
+            if (invalidCount > 0) {
+                errorDiv.textContent = `Có ${invalidCount} dòng lỗi!`;
+                errorDiv.style.display = 'block';
+            } else { errorDiv.style.display = 'none'; }
+            let html = '';
+            studentPreviewData.forEach((d, i) => {
+                html += `<tr class="${d.isValid ? 'table-success' : 'table-danger'}">
+                    <td>${i+1}</td><td>${d.maSV||''}</td><td>${d.hoTen||''}</td>
+                    <td>${d.gioiTinh||''}</td><td>${d.ngaySinh||''}</td><td>${d.cmnd||''}</td>
+                    <td>${d.email||''}</td><td>${d.dienThoai||''}</td><td>${d.trangThai||''}</td>
+                    <td>${d.isValid?'<i class="fas fa-check"></i>':d.errorMsg}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function importStudentExcel() {
+            const validRows = studentPreviewData.filter(d => d.isValid);
+            const errorRows = studentPreviewData.filter(d => !d.isValid);
+            if (validRows.length === 0 && errorRows.length === 0) { alert('Không có dữ liệu'); return; }
+            if (!confirm(`Import ${validRows.length} sinh viên?`)) return;
+            try {
+                const res = await fetch(API_URL + '/import', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(validRows)
+                });
+                if (res.ok) {
+                    // Save import log
+                    const logData = {
+                        module: 'students',
+                        filename: document.getElementById('studentExcelFile').value.split('\\').pop(),
+                        totalRows: studentPreviewData.length,
+                        successRows: validRows.length,
+                        errorRows: errorRows.length,
+                        importedBy: 'admin',
+                        errorDetails: JSON.stringify(errorRows)
+                    };
+                    await fetch('/api/import-logs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(logData)
+                    });
+                    
+                    if (errorRows.length > 0) {
+                        if (confirm(`Import thành công! Có ${errorRows.length} dòng lỗi. Tải file lỗi?`)) {
+                            exportStudentErrorRows(errorRows, 'sinhvien_loi');
+                        }
+                    } else {
+                        alert('Import thành công!');
+                    }
+                    document.getElementById('studentPreviewCard').style.display = 'none';
+                    document.getElementById('studentExcelFile').value = '';
+                    loadStudents();
+                    loadStudentImportLog();
+                } else { alert('Lỗi: ' + await res.text()); }
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
+
+        function exportStudentErrorRows(errors, filename) {
+            const data = errors.map(e => ({
+                STT: e.stt, MaSV: e.code, HoTen: e.fullname,
+                GioiTinh: e.gender, NgaySinh: e.dateOfBirth,
+                CMND: e.cmnd, DiaChi: e.address,
+                Email: e.email, DienThoai: e.phone,
+                TrangThai: e.status, Loi: e.errorMsg
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Loi');
+            XLSX.writeFile(wb, filename + '.xlsx');
+        }
+
+        async function loadStudentImportLog() {
+            try {
+                const res = await fetch('/api/import-logs/students');
+                const logs = await res.json();
+                let html = '';
+                logs.forEach((l, i) => {
+                    const date = l.importedAt ? new Date(l.importedAt).toLocaleString('vi-VN') : '';
+                    html += `<tr>
+                        <td>${i+1}</td><td>${l.filename||''}</td><td>${date}</td>
+                        <td>${l.totalRows||0}</td><td class="text-success">${l.successRows||0}</td>
+                        <td class="text-danger">${l.errorRows||0}</td><td>${l.importedBy||''}</td>
+                        <td>${l.errorRows > 0 ? `<button class="btn btn-sm btn-outline-danger" onclick="downloadStudentErrorLog('${l.id}')"><i class="fas fa-download"></i></button>` : ''}</td>
+                    </tr>`;
+                });
+                document.getElementById('studentImportLogTable').innerHTML = html || '<tr><td colspan="8" class="text-muted">Chưa có lịch sử import</td></tr>';
+            } catch (e) { console.error(e); }
+        }
+
+        async function downloadStudentErrorLog(id) {
+            try {
+                const res = await fetch('/api/import-logs/' + id);
+                const log = await res.json();
+                if (log.errorDetails) {
+                    const errors = JSON.parse(log.errorDetails);
+                    exportStudentErrorRows(errors, 'sinhvien_loi_' + log.id);
+                }
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
 
         // Load all
         async function loadStudents() {
@@ -401,6 +745,7 @@
 
         // Init
         loadStudents();
+        loadStudentImportLog();
     </script>
     </div>
 </body>

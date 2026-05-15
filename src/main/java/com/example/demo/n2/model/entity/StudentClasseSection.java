@@ -26,10 +26,10 @@ public class StudentClasseSection {
     @Column(name = "note", length = 255)
     private String note;
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", columnDefinition = "DATETIME")
     private LocalDateTime startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", columnDefinition = "DATETIME")
     private LocalDateTime endDate;
 
     @Column(name = "created_at")

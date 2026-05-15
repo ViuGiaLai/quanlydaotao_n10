@@ -11,6 +11,6 @@ import com.example.demo.n2.model.entity.AcademicYear;
 
 @Repository
 public interface AcademicYearRepository extends JpaRepository<AcademicYear, UUID> {
-    Optional<AcademicYear> findByYearCode(String yearCode);
-    List<AcademicYear> findByIsActive(Boolean isActive);
+    Optional<AcademicYear> findByCode(String code);
+    List<AcademicYear> findByIsActiveTrue();
 }

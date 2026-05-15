@@ -79,5 +79,12 @@ public class UserService {
             userRepo.save(user);
         }
     }
+
+    public User saveUser(User user) {
+        if (user.getId() == null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepo.save(user);
+    }
 }
 

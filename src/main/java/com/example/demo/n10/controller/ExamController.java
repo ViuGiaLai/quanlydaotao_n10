@@ -43,4 +43,12 @@ public class ExamController {
         exam.setId(id); // Đảm bảo ID được giữ nguyên để cập nhật đúng dòng
         return examService.saveExam(exam); // Tận dụng hàm save có sẵn
     }
+
+    // Import Excel
+    @PostMapping("/import")
+    public List<Exam> importExcel(@RequestBody List<Exam> items) {
+        return items.stream()
+                .map(examService::saveExam)
+                .toList();
+    }
 }

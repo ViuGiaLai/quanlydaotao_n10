@@ -50,8 +50,8 @@ public class TrainingProgram {
     @Column(name = "thesis_credits")
     private Integer thesisCredits;
 
-    @Column(name = "admission_year")
-    private Integer admissionYear;
+    @Column(name = "admission_year", columnDefinition = "DATE")
+    private LocalDateTime admissionYear;
 
     @Column(name = "duration_years")
     private Integer durationYears;
@@ -59,10 +59,10 @@ public class TrainingProgram {
     @Column(name = "max_duration_years")
     private Integer maxDurationYears;
 
-    @Column(name = "effective_date")
+    @Transient
     private LocalDateTime effectiveDate;
 
-    @Column(name = "expiry_date")
+    @Transient
     private LocalDateTime expiryDate;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
@@ -74,10 +74,10 @@ public class TrainingProgram {
     @Column(name = "learning_outcomes", columnDefinition = "NVARCHAR(MAX)")
     private String learningOutcomes;
 
-    @Column(name = "version")
+    @Transient
     private Integer version;
 
-    @Column(name = "status", length = 50)
+    @Transient
     private String status;
 
     @Column(name = "is_active")
@@ -89,10 +89,10 @@ public class TrainingProgram {
     @Column(name = "degree_type", length = 50)
     private String degreeType;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "DATETIME2")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "DATETIME2")
     private LocalDateTime updatedAt;
 
     @Column(name = "created_by", columnDefinition = "UNIQUEIDENTIFIER")
@@ -101,7 +101,7 @@ public class TrainingProgram {
     @Column(name = "updated_by", columnDefinition = "UNIQUEIDENTIFIER")
     private UUID updatedBy;
 
-    @Column(name = "deleted_at")
+    @Transient
     private LocalDateTime deletedAt;
 
     @Column(name = "deleted_by", columnDefinition = "UNIQUEIDENTIFIER")
@@ -148,8 +148,8 @@ public class TrainingProgram {
     public Integer getThesisCredits() { return thesisCredits; }
     public void setThesisCredits(Integer thesisCredits) { this.thesisCredits = thesisCredits; }
 
-    public Integer getAdmissionYear() { return admissionYear; }
-    public void setAdmissionYear(Integer admissionYear) { this.admissionYear = admissionYear; }
+    public LocalDateTime getAdmissionYear() { return admissionYear; }
+    public void setAdmissionYear(LocalDateTime admissionYear) { this.admissionYear = admissionYear; }
 
     public Integer getDurationYears() { return durationYears; }
     public void setDurationYears(Integer durationYears) { this.durationYears = durationYears; }
