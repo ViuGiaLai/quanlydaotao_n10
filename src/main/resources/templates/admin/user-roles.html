@@ -275,7 +275,7 @@
                 }
 
                 const method = id ? "PUT" : "POST";
-                const url = id ? `${USER_ROLE_API_URL}/${id}` : USER_ROLE_API_URL;
+                const url = id ? `${USER_ROLE_API_URL}/${encodeURIComponent(id)}` : USER_ROLE_API_URL;
 
                 try {
                     const res = await fetch(url, {
@@ -298,7 +298,7 @@
             async function deleteUserRole(id) {
                 if (!confirm("Bạn có chắc muốn xóa gán vai trò này?")) return;
                 try {
-                    const res = await fetch(`${USER_ROLE_API_URL}/${id}`, { method: "DELETE" });
+                    const res = await fetch(`${USER_ROLE_API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                     if (res.ok) loadUserRoles();
                     else alert("Xóa thất bại!");
                 } catch (error) {

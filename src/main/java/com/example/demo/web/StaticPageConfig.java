@@ -50,13 +50,32 @@ public class StaticPageConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/exam-papers").setViewName("admin/exam-papers");
         registry.addViewController("/admin/exam-types").setViewName("admin/exam-types");
         registry.addViewController("/admin/exam-rooms").setViewName("admin/exam-rooms");
+        registry.addViewController("/admin/exam-room-detail").setViewName("admin/exam-room-detail");
         registry.addViewController("/admin/exam-registrations").setViewName("admin/exam-registration");
         registry.addViewController("/admin/exam-results").setViewName("admin/exam-result");
+        registry.addViewController("/admin/course-class-subjects").setViewName("admin/course-class-subjects");
+        registry.addViewController("/admin/semesters").setViewName("admin/semesters");
+        registry.addViewController("/admin/subjects").setViewName("admin/subjects");
+        registry.addViewController("/admin/course-classes").setViewName("admin/course-classes");
         registry.addViewController("/admin/students").setViewName("admin/students");
         registry.addViewController("/admin/roles").setViewName("admin/roles");
         registry.addViewController("/admin/users").setViewName("admin/users");
         registry.addViewController("/admin/permissions").setViewName("admin/permissions");
         registry.addViewController("/admin/role-permissions").setViewName("admin/role-permissions");
         registry.addViewController("/admin/user-roles").setViewName("admin/user-roles");
+        
+        // Quản lý Giảng viên
+        registry.addViewController("/admin/teachers").setViewName("admin/teachers");
+        
+        // Quản lý Lớp Sinh viên
+        registry.addViewController("/admin/student-classes").setViewName("admin/student-classes");
+        registry.addViewController("/admin/student-classe-sections").setViewName("admin/student-classe-sections");
+        registry.addViewController("/admin/advisor-classe-sections").setViewName("admin/advisor-classe-sections");
+        
+        // Quản lý Danh mục
+        registry.addViewController("/admin/academic-years").setViewName("admin/academic-years");
+        registry.addViewController("/admin/departments").setViewName("admin/departments");
+        registry.addViewController("/admin/majors").setViewName("admin/majors");
+        registry.addViewController("/admin/training-programs").setViewName("admin/training-programs");
     }
 }

@@ -17,16 +17,31 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label">Chọn Lớp Học</label>
-                        <select class="form-select" id="courseClassId" onchange="loadStudents()">
+                    <div class="col-md-2">
+                        <label class="form-label">Học Kỳ</label>
+                        <select class="form-select" id="semesterId" onchange="loadCourseClasses()">
+                            <option value="">-- Chọn Học Kỳ --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Lớp Học</label>
+                        <select class="form-select" id="courseClassId" onchange="loadSubjects()">
                             <option value="">-- Chọn Lớp --</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Chọn Môn Học</label>
-                        <select class="form-select" id="subjectId" onchange="loadStudents()">
-                            <option value="">-- Chọn Môn --</option>
+                    <div class="col-md-2">
+                        <label class="form-label">Môn Học</label>
+                        <select class="form-select" id="subjectId">
+                            <option value="">-- Tất cả --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Trạng Thái</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">-- Tất cả --</option>
+                            <option value="DRAFT">Nháp</option>
+                            <option value="SUBMITTED">Đã gửi</option>
+                            <option value="APPROVED">Đã duyệt</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -36,7 +51,10 @@
                                 <i class="fas fa-search"></i> Tìm
                             </button>
                             <button class="btn btn-success" onclick="exportExcel()">
-                                <i class="fas fa-file-excel"></i> Export Excel
+                                <i class="fas fa-file-excel"></i> Export
+                            </button>
+                            <button class="btn btn-warning" id="submitBtn" onclick="submitScores()" disabled>
+                                <i class="fas fa-paper-plane"></i> Gửi
                             </button>
                         </div>
                     </div>
@@ -67,6 +85,7 @@
                                 <th rowspan="2" class="text-center align-middle">Họ Tên</th>
                                 <th colspan="4" class="text-center">Điểm Thành Phần</th>
                                 <th rowspan="2" class="text-center align-middle">Tổng</th>
+                                <th rowspan="2" class="text-center align-middle">Trạng Thái</th>
                                 <th rowspan="2" class="text-center align-middle">Thao Tác</th>
                             </tr>
                             <tr>
@@ -97,43 +116,116 @@
         let currentPage = 1;
         let isEditable = false;
 
-        // Load danh sách lớp và môn
+        // Load danh sách học kỳ
         async function loadLookupData() {
             try {
-                const [classesRes, subjectsRes] = await Promise.all([
-                    fetch("/api/course-classes/list"),
-                    fetch("/api/subjects/list")
-                ]);
-                const classes = await classesRes.json();
-                const subjects = await subjectsRes.json();
+                const semestersRes = await fetch("/api/semesters/list");
+                const semesters = await semestersRes.json();
                 
-                const classSelect = document.getElementById("courseClassId");
-                const subjectSelect = document.getElementById("subjectId");
-                
-                classes.forEach(c => {
-                    classSelect.innerHTML += `<option value="${c.id}">${c.className || c.name}</option>`;
-                });
-                subjects.forEach(s => {
-                    subjectSelect.innerHTML += `<option value="${s.id}">${s.subjectName || s.name}</option>`;
+                const semesterSelect = document.getElementById("semesterId");
+                semesters.forEach(s => {
+                    semesterSelect.innerHTML += `<option value="${s.id}">${s.name || s.semesterName}</option>`;
                 });
             } catch (e) {
                 console.error("Load lookup error:", e);
             }
         }
 
+        // Load lớp học theo học kỳ
+        async function loadCourseClasses() {
+            const semesterId = document.getElementById("semesterId").value;
+            const classSelect = document.getElementById("courseClassId");
+            const subjectSelect = document.getElementById("subjectId");
+            
+            // Reset
+            classSelect.innerHTML = '<option value="">-- Chọn Lớp --</option>';
+            subjectSelect.innerHTML = '<option value="">-- Tất cả --</option>';
+            
+            if (!semesterId) {
+                document.getElementById("scoreTable").innerHTML = 
+                    `<tr><td colspan="10" class="text-center text-muted">Vui lòng chọn học kỳ và lớp học</td></tr>`;
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/course-classes/list?semesterId=${semesterId}`);
+                const classes = await res.json();
+                
+                classes.forEach(c => {
+                    classSelect.innerHTML += `<option value="${c.id}">${c.className || c.name}</option>`;
+                });
+            } catch (e) {
+                console.error("Load course classes error:", e);
+            }
+        }
+
+        // Load môn học theo lớp
+        async function loadSubjects() {
+            const courseClassId = document.getElementById("courseClassId").value;
+            const subjectSelect = document.getElementById("subjectId");
+            
+            // Reset
+            subjectSelect.innerHTML = '<option value="">-- Tất cả --</option>';
+            
+            if (!courseClassId) {
+                document.getElementById("scoreTable").innerHTML = 
+                    `<tr><td colspan="10" class="text-center text-muted">Vui lòng chọn học kỳ và lớp học</td></tr>`;
+                return;
+            }
+            
+            try {
+                // Lấy chi tiết lớp học
+                const classRes = await fetch(`/api/course-classes/${courseClassId}`);
+                const courseClass = await classRes.json();
+                
+                // Thử lấy từ bảng trung gian trước
+                const ccsRes = await fetch(`/api/course-class-subjects?courseClassId=${courseClassId}`);
+                const courseClassSubjects = await ccsRes.json();
+                
+                if (courseClassSubjects && courseClassSubjects.length > 0) {
+                    // Lấy từ bảng trung gian
+                    for (const cs of courseClassSubjects) {
+                        const subjectRes = await fetch(`/api/subjects/${cs.subjectId}`);
+                        const subject = await subjectRes.json();
+                        
+                        if (subject) {
+                            subjectSelect.innerHTML += `<option value="${subject.id}">${subject.subjectName || subject.name}</option>`;
+                        }
+                    }
+                } else if (courseClass && courseClass.subjectId) {
+                    // Fallback: lấy từ CourseClass
+                    const subjectRes = await fetch(`/api/subjects/${courseClass.subjectId}`);
+                    const subject = await subjectRes.json();
+                    
+                    if (subject) {
+                        subjectSelect.innerHTML += `<option value="${subject.id}">${subject.subjectName || subject.name}</option>`;
+                    }
+                }
+            } catch (e) {
+                console.error("Load subjects error:", e);
+            }
+        }
+
         // Load danh sách điểm
         async function loadStudents() {
+            const semesterId = document.getElementById("semesterId").value;
             const courseClassId = document.getElementById("courseClassId").value;
             const subjectId = document.getElementById("subjectId").value;
+            const statusFilter = document.getElementById("statusFilter").value;
             
-            if (!courseClassId || !subjectId) {
+            if (!semesterId || !courseClassId) {
                 document.getElementById("scoreTable").innerHTML = 
-                    `<tr><td colspan="9" class="text-center text-muted">Vui lòng chọn lớp và môn học</td></tr>`;
+                    `<tr><td colspan="10" class="text-center text-muted">Vui lòng chọn học kỳ và lớp học</td></tr>`;
                 return;
             }
 
             try {
-                const res = await fetch(`${API_URL}?courseClassId=${courseClassId}&subjectId=${subjectId}`);
+                // Gọi API với params
+                let url = `${API_URL}?courseClassId=${courseClassId}`;
+                if (subjectId) url += `&subjectId=${subjectId}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                
+                const res = await fetch(url);
                 const data = await res.json();
                 scoreItems = Array.isArray(data) ? data : [];
                 currentPage = 1;
@@ -146,20 +238,34 @@
             } catch (e) {
                 console.error("Load error:", e);
                 document.getElementById("scoreTable").innerHTML = 
-                    `<tr><td colspan="9" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+                    `<tr><td colspan="10" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
             }
         }
 
         function showStatus() {
             const msgDiv = document.getElementById("statusMessage");
+            
+            // Đếm theo trạng thái
+            const draftCount = scoreItems.filter(i => i.status === "DRAFT").length;
+            const submittedCount = scoreItems.filter(i => i.status === "SUBMITTED").length;
+            const approvedCount = scoreItems.filter(i => i.status === "APPROVED").length;
+            
+            let statusHtml = "";
+            if (draftCount > 0) statusHtml += `<span class="badge bg-warning me-1">DRAFT: ${draftCount}</span>`;
+            if (submittedCount > 0) statusHtml += `<span class="badge bg-info me-1">Đã gửi: ${submittedCount}</span>`;
+            if (approvedCount > 0) statusHtml += `<span class="badge bg-success">Đã duyệt: ${approvedCount}</span>`;
+            
             if (isEditable) {
                 msgDiv.className = "alert alert-success";
-                msgDiv.innerHTML = "<i class='fas fa-check-circle'></i> Đang cho phép nhập điểm";
+                msgDiv.innerHTML = `<i class='fas fa-check-circle'></i> Mở nhập điểm | ${statusHtml}`;
             } else {
                 msgDiv.className = "alert alert-warning";
-                msgDiv.innerHTML = "<i class='fas fa-lock'></i> Đã khóa - Admin chưa cho phép nhập điểm";
+                msgDiv.innerHTML = `<i class='fas fa-lock'></i> Đã khóa nhập điểm | ${statusHtml}`;
             }
             msgDiv.classList.remove("d-none");
+            
+            // Cập nhật nút gửi
+            updateSubmitButton();
         }
 
         function renderTable() {
@@ -169,7 +275,7 @@
             
             let html = "";
             if (pageItems.length === 0) {
-                html = `<tr><td colspan="9" class="text-center text-muted">Không có dữ liệu</td></tr>`;
+                html = `<tr><td colspan="10" class="text-center text-muted">Không có dữ liệu</td></tr>`;
             } else {
                 pageItems.forEach(item => {
                     html += `
@@ -209,6 +315,7 @@
                                        placeholder="0-10">
                             </td>
                             <td class="text-center fw-bold">${item.totalScore || 0}</td>
+                            <td class="text-center">${getStatusBadge(item.status)}</td>
                             <td>
                                 <button class="btn btn-success btn-sm" 
                                         onclick="saveAllScores('${item.id}')"
@@ -265,7 +372,7 @@
             }
             
             try {
-                const res = await fetch(`${API_URL}/${id}`, {
+                const res = await fetch(`${API_URL}/${encodeURIComponent(id)}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -298,7 +405,7 @@
             if (!item) return;
             
             try {
-                const res = await fetch(`${API_URL}/${id}`, {
+                const res = await fetch(`${API_URL}/${encodeURIComponent(id)}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -336,7 +443,71 @@
             window.open(`${API_URL}/export?courseClassId=${courseClassId}&subjectId=${subjectId}&format=excel`, '_blank');
         }
 
-        document.addEventListener("DOMContentLoaded", loadLookupData);
+        // Gửi điểm (DRAFT → SUBMITTED)
+        async function submitScores() {
+            if (scoreItems.length === 0) {
+                alert("Không có điểm để gửi");
+                return;
+            }
+            
+            // Kiểm tra tất cả điểm phải ở trạng thái DRAFT
+            const draftItems = scoreItems.filter(i => i.status === "DRAFT");
+            if (draftItems.length === 0) {
+                alert("Tất cả điểm đã được gửi hoặc đã duyệt");
+                return;
+            }
+            
+            if (!confirm(`Gửi ${draftItems.length} điểm? Sau khi gửi, bạn không thể sửa cho đến khi Admin trả lại.`)) {
+                return;
+            }
+            
+            try {
+                const ids = draftItems.map(i => i.id);
+                const res = await fetch(`${API_URL}/submit-multiple`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(ids)
+                });
+                
+                if (!res.ok) throw new Error("Gửi thất bại");
+                
+                alert(`Đã gửi ${draftItems.length} điểm thành công!`);
+                loadStudents(); // Tải lại danh sách
+            } catch (e) {
+                console.error("Submit error:", e);
+                alert("Gửi thất bại: " + e.message);
+            }
+        }
+
+        // Cập nhật trạng thái nút Gửi
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById("submitBtn");
+            if (!submitBtn) return;
+            
+            const draftCount = scoreItems.filter(i => i.status === "DRAFT").length;
+            if (draftCount > 0 && isEditable) {
+                submitBtn.disabled = false;
+                submitBtn.title = `Gửi ${draftCount} điểm (DRAFT)`;
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.title = "Không có điểm DRAFT để gửi";
+            }
+        }
+
+        // Hiển thị trạng thái điểm
+        function getStatusBadge(status) {
+            switch(status) {
+                case "DRAFT": return '<span class="badge bg-warning">Nháp</span>';
+                case "SUBMITTED": return '<span class="badge bg-info">Đã gửi</span>';
+                case "APPROVED": return '<span class="badge bg-success">Đã duyệt</span>';
+                case "REJECTED": return '<span class="badge bg-danger">Trả lại</span>';
+                default: return '<span class="badge bg-secondary">-</span>';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadLookupData();
+        });
     </script>
 </th:block>
 </body>

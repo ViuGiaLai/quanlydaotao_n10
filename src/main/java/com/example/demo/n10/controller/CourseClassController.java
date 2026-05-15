@@ -20,7 +20,11 @@ public class CourseClassController {
     }
 
     @GetMapping({"/", "/list"})
-    public List<CourseClass> getAllCourseClasses() {
+    public List<CourseClass> getAllCourseClasses(
+            @RequestParam(required = false) UUID semesterId) {
+        if (semesterId != null) {
+            return courseClassService.findBySemesterId(semesterId);
+        }
         return courseClassService.findAll();
     }
 

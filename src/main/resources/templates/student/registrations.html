@@ -28,10 +28,10 @@
                     </thead>
                     <tbody>
                         <tr th:each="reg : ${registrations}">
-                            <td th:text="${reg.examId}">-</td>
+                            <td th:text="${examMap.get(reg.examId) ?: reg.examId}">-</td>
                             <td th:text="${reg.rollNumber}">-</td>
                             <td>-</td>
-                            <td th:text="${reg.examRoomId}">-</td>
+                            <td th:text="${examRoomMap.get(reg.examRoomId) ?: reg.examRoomId}">-</td>
                             <td>
                                 <span class="badge bg-success" th:if="${reg.isActive}">Đã xác nhận</span>
                                 <span class="badge bg-warning" th:unless="${reg.isActive}">Chờ xác nhận</span>

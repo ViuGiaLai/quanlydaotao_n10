@@ -296,7 +296,7 @@
             async function deleteRolePermission(id) {
                 if (!confirm("Bạn chắc chắn muốn xóa?")) return;
                 try {
-                    const res = await fetch(`${ROLE_PERMISSION_API_URL}/${id}`, { method: "DELETE" });
+                    const res = await fetch(`${ROLE_PERMISSION_API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                     if (res.ok) loadRolePermissions();
                 } catch (e) {
                     alert("Xóa thất bại");

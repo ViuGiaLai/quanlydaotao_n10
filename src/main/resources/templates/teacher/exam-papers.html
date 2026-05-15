@@ -48,7 +48,7 @@
                     <tbody>
                         <tr th:each="paper : ${papers}">
                             <td th:text="${paper.paperCode}">-</td>
-                            <td th:text="${paper.examId}">-</td>
+                            <td th:text="${examTypeMap.get(paper.examId.toString()) ?: paper.examId}">-</td>
                             <td th:text="${paper.createdAt}">-</td>
                             <td><span class="badge bg-success">Hoạt động</span></td>
                         </tr>

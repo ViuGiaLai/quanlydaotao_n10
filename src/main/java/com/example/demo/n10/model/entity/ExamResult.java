@@ -1,6 +1,7 @@
 package com.example.demo.n10.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,22 +13,39 @@ public class ExamResult {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Version
+    private Long version; // Optimistic locking to prevent concurrent modifications
+
     @Column(name = "registration_id", nullable = false)
     private UUID registrationId;
+
+    @Column(name = "course_class_id")
+    private UUID courseClassId;
+
+    @Column(name = "subject_id")
+    private UUID subjectId;
 
     @Column(name = "score", nullable = false)
     private Double score;
 
     // Các loại điểm thành phần
+    @Min(value = 0, message = "Điểm chuyên cần không được âm")
+    @Max(value = 10, message = "Điểm chuyên cần không được vượt quá 10")
     @Column(name = "attendance_score")
     private Double attendanceScore; // Điểm chuyên cần 10%
 
+    @Min(value = 0, message = "Điểm kiểm tra không được âm")
+    @Max(value = 10, message = "Điểm kiểm tra không được vượt quá 10")
     @Column(name = "test_score")
     private Double testScore; // Điểm kiểm tra 20%
 
+    @Min(value = 0, message = "Điểm giữa kỳ không được âm")
+    @Max(value = 10, message = "Điểm giữa kỳ không được vượt quá 10")
     @Column(name = "midterm_score")
     private Double midtermScore; // Điểm giữa kỳ 20%
 
+    @Min(value = 0, message = "Điểm cuối kỳ không được âm")
+    @Max(value = 10, message = "Điểm cuối kỳ không được vượt quá 10")
     @Column(name = "final_score")
     private Double finalScore; // Điểm cuối kỳ 50%
 
@@ -46,9 +64,9 @@ public class ExamResult {
     @Column(name = "is_locked", nullable = false)
     private Boolean isLocked;
 
-    // Admin cho phép Teacher nhập điểm không
-    @Column(name = "is_editable")
-    private Boolean isEditable;
+    // Trạng thái cho phép nhập điểm: OPEN / LOCKED
+    @Column(name = "edit_status", length = 10)
+    private String editStatus;
 
     // Loại điểm: ATTENDANCE, TEST, MIDTERM, FINAL, TOTAL
     @Column(name = "score_type", length = 20)
@@ -75,6 +93,13 @@ public class ExamResult {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    // Trạng thái công bố: null = chưa công bố, PUBLISHED = đã công bố cho sinh viên
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    @Column(name = "published_by")
+    private UUID publishedBy;
+
     // Getters and Setters
 
     public UUID getId() {
@@ -91,6 +116,22 @@ public class ExamResult {
 
     public void setRegistrationId(UUID registrationId) {
         this.registrationId = registrationId;
+    }
+
+    public UUID getCourseClassId() {
+        return courseClassId;
+    }
+
+    public void setCourseClassId(UUID courseClassId) {
+        this.courseClassId = courseClassId;
+    }
+
+    public UUID getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(UUID subjectId) {
+        this.subjectId = subjectId;
     }
 
     public Double getScore() {
@@ -120,6 +161,13 @@ public class ExamResult {
     // Total Score - tính tự động
     public Double getTotalScore() { 
         if (totalScore != null) return totalScore;
+        
+        // If no component scores entered, return null (not 0)
+        if (attendanceScore == null && testScore == null && 
+            midtermScore == null && finalScore == null) {
+            return null;
+        }
+        
         double total = 0;
         if (attendanceScore != null) total += attendanceScore * 0.1;
         if (testScore != null) total += testScore * 0.2;
@@ -161,8 +209,17 @@ public class ExamResult {
         this.isLocked = isLocked;
     }
 
-    public Boolean getIsEditable() { return isEditable; }
-    public void setIsEditable(Boolean isEditable) { this.isEditable = isEditable; }
+    // editStatus: OPEN = cho phép nhập, LOCKED = khóa nhập
+    public String getEditStatus() { return editStatus; }
+    public void setEditStatus(String editStatus) { this.editStatus = editStatus; }
+    
+    // Helper để tương thích ngược
+    public Boolean getIsEditable() { 
+        return "OPEN".equals(editStatus); 
+    }
+    public void setIsEditable(Boolean isEditable) { 
+        this.editStatus = (isEditable != null && isEditable) ? "OPEN" : "LOCKED"; 
+    }
 
     public String getScoreType() { return scoreType; }
     public void setScoreType(String scoreType) { this.scoreType = scoreType; }
@@ -221,5 +278,29 @@ public class ExamResult {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public UUID getPublishedBy() {
+        return publishedBy;
+    }
+
+    public void setPublishedBy(UUID publishedBy) {
+        this.publishedBy = publishedBy;
     }
 }

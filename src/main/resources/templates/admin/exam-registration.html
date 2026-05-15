@@ -112,12 +112,18 @@
     <th:block layout:fragment="script">
         <script>
             const API_URL = "/api/exam-registrations";
+            const EXAM_API = "/api/exams";
+            const ROOM_API = "/api/exam-rooms";
+            const STUDENT_API = "/api/students";
             const PAGE_SIZE = 10;
 
             let registrationItems = [];
+            let examItems = [];
+            let roomItems = [];
+            let studentItems = [];
             let currentPage = 1;
 
-            /*  LOAD  */
+            /* ---------------- LOAD ---------------- */
             async function loadRegistrations() {
                 try {
                     const res = await fetch(API_URL);
@@ -128,6 +134,58 @@
 
                     currentPage = 1;
                     renderTable();
+                } catch (e) {
+                    console.error("Load error:", e);
+                }
+            }
+
+            async function loadExams() {
+                try {
+                    const res = await fetch(EXAM_API);
+                    if (!res.ok) throw new Error("API error");
+                    examItems = await res.json();
+                } catch (e) {
+                    console.error("Load exams error:", e);
+                }
+            }
+
+            async function loadRooms() {
+                try {
+                    const res = await fetch(ROOM_API);
+                    if (!res.ok) throw new Error("API error");
+                    roomItems = await res.json();
+                } catch (e) {
+                    console.error("Load rooms error:", e);
+                }
+            }
+
+            async function loadStudents() {
+                try {
+                    const res = await fetch(STUDENT_API);
+                    if (!res.ok) throw new Error("API error");
+                    studentItems = await res.json();
+                } catch (e) {
+                    console.error("Load students error:", e);
+                }
+            }
+
+            function getExamName(examId) {
+                if (!examId) return "-";
+                const exam = examItems.find(e => String(e.id) === String(examId));
+                return exam ? (exam.name || exam.examName || examId) : examId;
+            }
+
+            function getRoomName(roomId) {
+                if (!roomId) return "-";
+                const room = roomItems.find(r => String(r.id) === String(roomId));
+                return room ? (room.examRoomName || room.name || roomId) : roomId;
+            }
+
+            function getStudentName(studentId) {
+                if (!studentId) return "-";
+                const student = studentItems.find(s => String(s.id) === String(studentId));
+                return student ? (student.name || student.fullname || student.code || studentId) : studentId;
+            }
 
                 } catch (e) {
                     console.error(e);
@@ -143,7 +201,7 @@
                 }
             }
 
-            /*  RENDER  */
+            /* ---------------- RENDER ---------------- */
             function renderTable() {
                 const start = (currentPage - 1) * PAGE_SIZE;
                 const pageItems = registrationItems.slice(start, start + PAGE_SIZE);
@@ -153,9 +211,9 @@
                 pageItems.forEach(r => {
                     html += `
         <tr>
-            <td>${escapeHtml(r.examId)}</td>
-            <td>${escapeHtml(r.examRoomId)}</td>
-            <td>${escapeHtml(r.studentId)}</td>
+            <td>${escapeHtml(getExamName(r.examId))}</td>
+            <td>${escapeHtml(getRoomName(r.examRoomId))}</td>
+            <td>${escapeHtml(getStudentName(r.studentId))}</td>
             <td>${escapeHtml(r.rollNumber)}</td>
             <td>
                 <span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">
@@ -182,7 +240,7 @@
                 renderPagination();
             }
 
-            /*  PAGINATION  */
+            /* ---------------- PAGINATION ---------------- */
             function renderPagination() {
                 const totalPages = Math.ceil(registrationItems.length / PAGE_SIZE);
                 const div = document.getElementById("registrationPagination");
@@ -212,7 +270,7 @@
                 renderTable();
             }
 
-            /*  MODAL  */
+            /* ---------------- MODAL ---------------- */
             function openRegistrationModal() {
                 document.getElementById("modalTitle").innerText = "Thêm Đăng Ký Thi";
                 document.getElementById("registrationForm").reset();
@@ -245,7 +303,7 @@
                 modal.show();
             }
 
-            /*  SAVE  */
+            /* ---------------- SAVE ---------------- */
             async function saveRegistration() {
                 const id = document.getElementById("registrationId").value;
 
@@ -257,7 +315,7 @@
                     isActive: document.getElementById("isActive").checked
                 };
 
-                const url = id ? `${API_URL}/${id}` : API_URL;
+                const url = id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL;
                 const method = id ? "PUT" : "POST";
 
                 try {
@@ -280,15 +338,15 @@
                 }
             }
 
-            /*  DELETE  */
+            /* ---------------- DELETE ---------------- */
             async function deleteRegistration(id) {
                 if (!confirm("Xóa đăng ký này?")) return;
 
-                await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                await fetch(`${API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                 loadRegistrations();
             }
 
-            /*  UTIL  */
+            /* ---------------- UTIL ---------------- */
             function escapeHtml(str) {
                 if (!str) return "";
                 return String(str)
@@ -297,7 +355,12 @@
                     .replaceAll(">", "&gt;");
             }
 
-            document.addEventListener("DOMContentLoaded", loadRegistrations);
+            document.addEventListener("DOMContentLoaded", () => {
+                loadRegistrations();
+                loadExams();
+                loadRooms();
+                loadStudents();
+            });
         </script>
     </th:block>
 

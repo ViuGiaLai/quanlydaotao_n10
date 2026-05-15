@@ -110,7 +110,7 @@
             let items = [];
             let currentPage = 1;
 
-            /*  LOAD EXAMS  */
+            /* ---------------- LOAD EXAMS ---------------- */
             async function loadExams() {
                 const res = await fetch(EXAM_API);
                 exams = await res.json();
@@ -124,7 +124,7 @@
                 });
             }
 
-            /*  LOAD PAPERS  */
+            /* ---------------- LOAD PAPERS ---------------- */
             async function loadExamPapers() {
                 const res = await fetch(API_URL);
                 items = await res.json();
@@ -133,7 +133,7 @@
                 render();
             }
 
-            /*  RENDER  */
+            /* ---------------- RENDER ---------------- */
             function render() {
                 const start = (currentPage - 1) * PAGE_SIZE;
                 const page = items.slice(start, start + PAGE_SIZE);
@@ -169,7 +169,7 @@
                 renderPagination();
             }
 
-            /*  PAGINATION  */
+            /* ---------------- PAGINATION ---------------- */
             function renderPagination() {
                 const total = Math.ceil(items.length / PAGE_SIZE);
                 const div = document.getElementById("examPaperPagination");
@@ -197,7 +197,7 @@
                 render();
             }
 
-            /*  MODAL  */
+            /* ---------------- MODAL ---------------- */
             function openAddModal() {
                 document.getElementById("modalTitle").innerText = "Thêm Đề Thi";
                 document.getElementById("examPaperForm").reset();
@@ -225,7 +225,7 @@
                 ).show();
             }
 
-            /*  SAVE  */
+            /* ---------------- SAVE ---------------- */
             async function saveExamPaper() {
                 const id = document.getElementById("examPaperId").value;
 
@@ -236,7 +236,7 @@
                     isActive: document.getElementById("isActive").checked
                 };
 
-                const res = await fetch(id ? `${API_URL}/${id}` : API_URL, {
+                const res = await fetch(id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL, {
                     method: id ? "PUT" : "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(body)
@@ -254,14 +254,14 @@
                 loadExamPapers();
             }
 
-            /*  DELETE  */
+            /* ---------------- DELETE ---------------- */
             async function deleteExamPaper(id) {
                 if (!confirm("Xóa đề thi?")) return;
-                await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                await fetch(`${API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                 loadExamPapers();
             }
 
-            /*  HELPERS  */
+            /* ---------------- HELPERS ---------------- */
             function getExamName(id) {
                 const e = exams.find(x => x.id === id);
                 return e ? (e.name || e.examName || id) : id;
@@ -275,7 +275,7 @@
                     .replaceAll(">", "&gt;");
             }
 
-            /*  FILE  */
+            /* ---------------- FILE ---------------- */
             function downloadFile(url) {
                 window.open(url, "_blank");
             }
@@ -284,7 +284,7 @@
                 window.open(url, "_blank");
             }
 
-            /*  INIT  */
+            /* ---------------- INIT ---------------- */
             document.addEventListener("DOMContentLoaded", async () => {
                 await loadExams();
                 await loadExamPapers();

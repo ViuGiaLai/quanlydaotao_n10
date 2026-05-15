@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Quản Lý Ngành - Admin</title>
+    <th:block th:with="activePage='majors'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-graduation-cap"></i> Quản Lý Ngành</h2>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Thêm/Sửa Ngành</h5>
+            </div>
+            <div class="card-body">
+                <form id="form">
+                    <input type="hidden" id="id">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Mã Ngành <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="code" required placeholder="TOAN">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tên Ngành <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" required placeholder="Ngành Toán">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Khoa</label>
+                            <select class="form-select" id="departmentId">
+                                <option value="">-- Chọn Khoa --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Bậc Đào Tạo</label>
+                            <select class="form-select" id="degreeLevel">
+                                <option value="">-- Chọn --</option>
+                                <option value="Cử nhân">Cử nhân</option>
+                                <option value="Kỹ sư">Kỹ sư</option>
+                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                <option value="Tiến sĩ">Tiến sĩ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Thời Gian (Năm)</label>
+                            <input type="number" class="form-control" id="durationYears" value="4">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mô Tả</label>
+                            <input type="text" class="form-control" id="description" placeholder="Mô tả ngành...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Hoạt Động</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Lưu</button>
+                            <button type="reset" class="btn btn-secondary"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Ngành</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã Ngành</th>
+                            <th>Tên Ngành</th>
+                            <th>Khoa</th>
+                            <th>Bậc</th>
+                            <th>Thời Gian</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/majors';
+        const DEPT_URL = '/api/departments';
+        let items = [];
+        let departments = [];
+
+        async function load() {
+            try {
+                const [r1, r2] = await Promise.all([fetch(API_URL), fetch(DEPT_URL)]);
+                items = await r1.json();
+                departments = await r2.json();
+                renderDept();
+                render();
+            } catch (e) {
+                document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" class="text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderDept() {
+            let html = '<option value="">-- Chọn Khoa --</option>';
+            departments.forEach(d => {
+                html += `<option value="${d.id}">${d.departmentName}</option>`;
+            });
+            document.getElementById("departmentId").innerHTML = html;
+        }
+
+        function render() {
+            let html = items.length ? '' : '<tr><td colspan="8" class="text-muted">Chưa có dữ liệu</td></tr>';
+            items.forEach((o, i) => {
+                const dept = departments.find(d => d.id === o.departmentId);
+                const status = o.isActive !== false ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-secondary">Khóa</span>';
+                html += `<tr>
+                    <td>${i+1}</td>
+                    <td>${o.code}</td>
+                    <td>${o.name}</td>
+                    <td>${dept ? dept.departmentName : '-'}</td>
+                    <td>${o.degreeLevel || '-'}</td>
+                    <td>${o.durationYears || '-'}</td>
+                    <td>${status}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm me-1" onclick="edit('${o.id}')">Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="del('${o.id}')">Xóa</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById("tableBody").innerHTML = html;
+        }
+
+        async function edit(id) {
+            const o = items.find(x => x.id === id);
+            if (!o) return;
+            document.getElementById("id").value = o.id;
+            document.getElementById("code").value = o.code || '';
+            document.getElementById("name").value = o.name || '';
+            document.getElementById("departmentId").value = o.departmentId || '';
+            document.getElementById("degreeLevel").value = o.degreeLevel || '';
+            document.getElementById("durationYears").value = o.durationYears || '';
+            document.getElementById("description").value = o.description || '';
+            document.getElementById("isActive").checked = o.isActive !== false;
+        }
+
+        async function del(id) {
+            if (!confirm('Xóa?')) return;
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            load();
+        }
+
+        document.getElementById("form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("id").value;
+            const data = {
+                code: document.getElementById("code").value,
+                name: document.getElementById("name").value,
+                departmentId: document.getElementById("departmentId").value || null,
+                degreeLevel: document.getElementById("degreeLevel").value,
+                durationYears: parseInt(document.getElementById("durationYears").value) || null,
+                description: document.getElementById("description").value,
+                isActive: document.getElementById("isActive").checked
+            };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+            await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            document.getElementById("form").reset();
+            document.getElementById("id").value = '';
+            load();
+        });
+
+        load();
+    </script>
+    </div>
+</body>
+</html>

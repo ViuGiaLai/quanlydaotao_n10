@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Quản Lý Giảng Viên - Admin</title>
+    <th:block th:with="activePage='teachers'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-chalkboard-teacher"></i> Quản Lý Giảng Viên</h2>
+        </div>
+
+        <!-- Form thêm/sửa -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Thêm/Sửa Giảng Viên</h5>
+            </div>
+            <div class="card-body">
+                <form id="teacherForm">
+                    <input type="hidden" id="teacherId">
+                    <!-- Row 1: Thông tin cơ bản -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Mã Giảng Viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="code" required placeholder="GV001">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Họ Tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="fullname" required placeholder="Nguyễn Văn A">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Giới Tính</label>
+                            <select class="form-select" id="gender">
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ngày Sinh</label>
+                            <input type="date" class="form-control" id="dateOfBirth">
+                        </div>
+                    </div>
+                    <!-- Row 2: Liên lạc -->
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" placeholder="gv@example.edu.vn">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Số Điện Thoại</label>
+                            <input type="text" class="form-control" id="phone" placeholder="0912345678">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Khoa</label>
+                            <input type="text" class="form-control" id="departmentId" placeholder="ID khoa">
+                        </div>
+                    </div>
+                    <!-- Row 3: Học vấm -->
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Học Vị</label>
+                            <select class="form-select" id="degree">
+                                <option value="">-- Chọn --</option>
+                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                <option value="Tiến sĩ">Tiến sĩ</option>
+                                <option value="Phó Giáo sư">Phó Giáo sư</option>
+                                <option value="Giáo sư">Giáo sư</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Chức Danh</label>
+                            <select class="form-select" id="academicTitle">
+                                <option value="">-- Chọn --</option>
+                                <option value="Giảng viên">Giảng viên</option>
+                                <option value="Giảng viên chính">Giảng viên chính</option>
+                                <option value="Phó giảng viên">Phó giảng viên</option>
+                                <option value="Trợ giảng">Trợ giảng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Chuyên Môn</label>
+                            <input type="text" class="form-control" id="specialization" placeholder="Toán học, Tin học...">
+                        </div>
+                    </div>
+                    <!-- Row 4: Trạng thái -->
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Trạng Thái</label>
+                            <select class="form-select" id="status">
+                                <option value="Đang giảng dạy">Đang giảng dạy</option>
+                                <option value="Nghỉ phép">Nghỉ phép</option>
+                                <option value="Nghỉ việc">Nghỉ việc</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Kích Hoạt</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">Hoạt động</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Hành Động</label>
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Lưu
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Giảng Viên</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã GV</th>
+                            <th>Họ Tên</th>
+                            <th>Giới Tính</th>
+                            <th>Ngày Sinh</th>
+                            <th>Email</th>
+                            <th>Điện Thoại</th>
+                            <th>Học Vị</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherTable">
+                        <tr><td colspan="10" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+                <div id="teacherPagination" class="d-flex justify-content-center mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/teachers';
+        const PAGE_SIZE = 15;
+        let teacherItems = [];
+        let currentPage = 1;
+
+        // Load all
+        async function loadTeachers() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                teacherItems = Array.isArray(data) ? data : [];
+                currentPage = 1;
+                renderTable();
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById("teacherTable").innerHTML = 
+                    `<tr><td colspan="10" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        // Render table
+        function renderTable() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = teacherItems.slice(start, start + PAGE_SIZE);
+            
+            const tbody = document.getElementById("teacherTable");
+            if (pageItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            pageItems.forEach((t, index) => {
+                const dob = t.dateOfBirth ? new Date(t.dateOfBirth).toLocaleDateString('vi-VN') : '-';
+                const isActive = t.isActive ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-secondary">Khóa</span>';
+                html += `
+                    <tr>
+                        <td>${start + index + 1}</td>
+                        <td>${t.code || '-'}</td>
+                        <td>${t.fullname || '-'}</td>
+                        <td>${t.gender || '-'}</td>
+                        <td>${dob}</td>
+                        <td>${t.email || '-'}</td>
+                        <td>${t.phone || '-'}</td>
+                        <td>${t.degree || '-'}</td>
+                        <td>${t.status || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm me-1" onclick="editTeacher('${t.id}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            renderPagination();
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(teacherItems.length / PAGE_SIZE);
+            const pagination = document.getElementById("teacherPagination");
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '<nav><ul class="pagination">';
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage - 1})">Trước</button>
+            </li>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                </li>`;
+            }
+            
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="goToPage(${currentPage + 1})">Sau</button>
+            </li></ul></nav>`;
+            
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(teacherItems.length / PAGE_SIZE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        // Edit
+        async function editTeacher(id) {
+            try {
+                const res = await fetch(`${API_URL}/${id}`);
+                const t = await res.json();
+                
+                document.getElementById("teacherId").value = t.id;
+                document.getElementById("code").value = t.code || '';
+                document.getElementById("fullname").value = t.fullname || '';
+                document.getElementById("gender").value = t.gender || 'Nam';
+                document.getElementById("dateOfBirth").value = t.dateOfBirth ? t.dateOfBirth.split('T')[0] : '';
+                document.getElementById("email").value = t.email || '';
+                document.getElementById("phone").value = t.phone || '';
+                document.getElementById("departmentId").value = t.departmentId || '';
+                document.getElementById("degree").value = t.degree || '';
+                document.getElementById("academicTitle").value = t.academicTitle || '';
+                document.getElementById("specialization").value = t.specialization || '';
+                document.getElementById("status").value = t.status || 'Đang giảng dạy';
+                document.getElementById("isActive").checked = t.isActive !== false;
+                
+                document.getElementById("teacherForm").scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                console.error("Edit error:", e);
+            }
+        }
+
+        // Delete
+        async function deleteTeacher(id) {
+            if (!confirm('Bạn có chắc muốn xóa?')) return;
+            
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadTeachers();
+            } catch (e) {
+                console.error("Delete error:", e);
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        // Save
+        document.getElementById("teacherForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById("teacherId").value;
+            const data = {
+                code: document.getElementById("code").value,
+                fullname: document.getElementById("fullname").value,
+                gender: document.getElementById("gender").value,
+                dateOfBirth: document.getElementById("dateOfBirth").value ? document.getElementById("dateOfBirth").value + 'T00:00:00' : null,
+                email: document.getElementById("email").value,
+                phone: document.getElementById("phone").value,
+                departmentId: document.getElementById("departmentId").value || null,
+                degree: document.getElementById("degree").value,
+                academicTitle: document.getElementById("academicTitle").value,
+                specialization: document.getElementById("specialization").value,
+                status: document.getElementById("status").value,
+                isActive: document.getElementById("isActive").checked
+            };
+            
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) {
+                    const err = await res.text();
+                    alert('Lỗi: ' + err);
+                    return;
+                }
+                
+                document.getElementById("teacherForm").reset();
+                document.getElementById("teacherId").value = '';
+                loadTeachers();
+                alert('Lưu thành công!');
+            } catch (e) {
+                console.error("Save error:", e);
+                alert('Lỗi: ' + e.message);
+            }
+        });
+
+        // Init
+        loadTeachers();
+    </script>
+    </div>
+</body>
+</html>

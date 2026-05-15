@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Quản Lý Sinh Viên Lớp - Admin</title>
+    <th:block th:with="activePage='student-classe-sections'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-graduate"></i> Quản Lý Sinh Viên Lớp</h2>
+        </div>
+
+        <!-- Form thêm/sửa -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Thêm/Sửa Sinh Viên Vào Lớp</h5>
+            </div>
+            <div class="card-body">
+                <form id="sectionForm">
+                    <input type="hidden" id="sectionId">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã Sinh Viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="studentId" required placeholder="SV001">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Mã Lớp <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="studentClasseId" required placeholder="KST23I">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Trạng Thái</label>
+                            <select class="form-select" id="status">
+                                <option value="studying">Đang học</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="dropped">Bỏ học</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Ghi Chú</label>
+                            <input type="text" class="form-control" id="note" placeholder="Ghi chú...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ngày Bắt Đầu</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ngày Kết Thúc</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Sinh Viên Lớp</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã SV</th>
+                            <th>Mã Lớp</th>
+                            <th>Trạng Thái</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Ghi Chú</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectionTable">
+                        <tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/student-classe-sections';
+        let sectionItems = [];
+
+        async function loadSections() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                sectionItems = Array.isArray(data) ? data : [];
+                renderTable();
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById("sectionTable").innerHTML = 
+                    `<tr><td colspan="8" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById("sectionTable");
+            if (sectionItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            sectionItems.forEach((s, index) => {
+                const startDate = s.startDate ? new Date(s.startDate).toLocaleDateString('vi-VN') : '-';
+                const endDate = s.endDate ? new Date(s.endDate).toLocaleDateString('vi-VN') : '-';
+                const statusBadge = s.status === 'studying' ? 'bg-primary' : (s.status === 'completed' ? 'bg-success' : 'bg-danger');
+                const statusText = s.status === 'studying' ? 'Đang học' : (s.status === 'completed' ? 'Hoàn thành' : 'Bỏ học');
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${s.studentId || '-'}</td>
+                        <td>${s.studentClasseId || '-'}</td>
+                        <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                        <td>${s.note || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm me-1" onclick="editSection('${s.id}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSection('${s.id}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function editSection(id) {
+            try {
+                const res = await fetch(`${API_URL}/${id}`);
+                const s = await res.json();
+                
+                document.getElementById("sectionId").value = s.id;
+                document.getElementById("studentId").value = s.studentId || '';
+                document.getElementById("studentClasseId").value = s.studentClasseId || '';
+                document.getElementById("status").value = s.status || 'studying';
+                document.getElementById("note").value = s.note || '';
+                document.getElementById("startDate").value = s.startDate ? s.startDate.split('T')[0] : '';
+                document.getElementById("endDate").value = s.endDate ? s.endDate.split('T')[0] : '';
+                
+                document.getElementById("sectionForm").scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                console.error("Edit error:", e);
+            }
+        }
+
+        async function deleteSection(id) {
+            if (!confirm('Bạn có chắc muốn xóa?')) return;
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadSections();
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        document.getElementById("sectionForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById("sectionId").value;
+            const data = {
+                studentId: document.getElementById("studentId").value,
+                studentClasseId: document.getElementById("studentClasseId").value,
+                status: document.getElementById("status").value,
+                note: document.getElementById("note").value,
+                startDate: document.getElementById("startDate").value ? document.getElementById("startDate").value + 'T00:00:00' : null,
+                endDate: document.getElementById("endDate").value ? document.getElementById("endDate").value + 'T00:00:00' : null
+            };
+            
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!res.ok) {
+                    const err = await res.text();
+                    alert('Lỗi: ' + err);
+                    return;
+                }
+                
+                document.getElementById("sectionForm").reset();
+                document.getElementById("sectionId").value = '';
+                loadSections();
+                alert('Lưu thành công!');
+            } catch (e) {
+                alert('Lỗi: ' + e.message);
+            }
+        });
+
+        loadSections();
+    </script>
+    </div>
+</body>
+</html>

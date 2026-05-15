@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>Chi Tiết Phòng Thi</title>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1060;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        body.modal-open {
+            overflow: hidden;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <th:block th:with="activePage='exam-rooms'"></th:block>
+        
+        <div class="app-content">
+            <div class="container-fluid">
+                <!-- Thông tin phòng thi -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <a href="/admin/exam-rooms" class="btn btn-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="info-card">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="info-label">TÊN PHÒNG THI</div>
+                                    <div class="info-value" id="roomName">-</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="info-label">ID KỲ THI</div>
+                                    <div class="info-value"><code id="examId">-</code></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="info-label">SỨC CHỨA</div>
+                                    <div class="info-value" id="capacity">-</div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="info-label">SỐ THÍ SINH</div>
+                                    <div class="info-value" id="studentCount">0</div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="info-label">TRẠNG THÁI</div>
+                                    <div class="info-value" id="status">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="card-title">Danh Sách Thí Sinh</h3>
+                                <div>
+                                    <button class="btn btn-success btn-sm" onclick="openAddModal()">
+                                        <i class="bi bi-plus-lg"></i> Thêm Thí Sinh
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Số Báo Danh</th>
+                                                <th>ID Thí Sinh</th>
+                                                <th>Ngày Đăng Ký</th>
+                                                <th>Trạng Thái</th>
+                                                <th>Thao Tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="studentTableBody"></tbody>
+                                    </table>
+                                    <div id="pagination" class="d-flex justify-content-center mt-3 mb-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Thêm Thí Sinh -->
+        <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Thêm Thí Sinh</h5>
+                        <button type="button" class="btn-close" onclick="closeModal()" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="studentForm">
+                            <input type="hidden" id="registrationId">
+                            <div class="mb-3">
+                                <label for="studentId" class="form-label">Thí Sinh <span class="text-danger">*</span></label>
+                                <select class="form-select" id="studentId" required>
+                                    <option value="">-- Chọn thí sinh --</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rollNumber" class="form-label">Số Báo Danh <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="rollNumber" required placeholder="VD: ST001">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isActive" checked>
+                                    <label class="form-check-label" for="isActive">Kích hoạt</label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="saveRegistration()">Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script>
+            // Lấy examRoomId từ URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const examRoomId = urlParams.get('roomId');
+            const examId = urlParams.get('examId');
+
+            const REGISTRATION_API = "/api/exam-registrations";
+            const STUDENT_API = "/api/students";
+            const PAGE_SIZE = 15;
+            let registrations = [];
+            let students = [];
+            let filteredItems = [];
+            let currentPage = 1;
+
+            // Load thông tin phòng thi
+            async function loadRoomInfo() {
+                if (!examRoomId) {
+                    alert("Thiếu roomId!");
+                    return;
+                }
+
+                console.log("Loading room:", examRoomId);
+
+                try {
+                    // Load phòng thi - encode URI để xử lý UUID đúng cách
+                    const roomUrl = `/api/exam-rooms/${encodeURIComponent(examRoomId)}`;
+                    console.log("Room URL:", roomUrl);
+                    
+                    const roomRes = await fetch(roomUrl);
+                    console.log("Room response:", roomRes.status);
+                    
+                    if (!roomRes.ok) {
+                        throw new Error("Room not found: " + roomRes.status);
+                    }
+                    
+                    const room = await roomRes.json();
+                    console.log("Room data:", room);
+                    
+                    document.getElementById("roomName").textContent = room.examRoomName || "-";
+                    document.getElementById("examId").textContent = room.examId ? room.examId.substring(0, 8) + "..." : "-";
+                    document.getElementById("capacity").textContent = room.capacity || "-";
+                    document.getElementById("status").innerHTML = room.isActive 
+                        ? '<span class="badge text-bg-success">Hoạt động</span>' 
+                        : '<span class="badge text-bg-danger">Vô hiệu</span>';
+
+                    // Load danh sách đăng ký
+                    await loadRegistrations();
+                } catch (e) {
+                    console.error("Load room info error:", e);
+                    alert("Lỗi tải thông tin phòng thi: " + e.message);
+                }
+            }
+
+            async function loadRegistrations() {
+                try {
+                    // Encode UUID để tránh vấn đề với special characters
+                    const encodedRoomId = encodeURIComponent(examRoomId);
+                    let url = `${REGISTRATION_API}/by-room/${encodedRoomId}`;
+                    console.log("Loading registrations from:", url);
+                    
+                    const res = await fetch(url);
+                    console.log("Registrations response:", res.status);
+                    
+                    if (!res.ok) throw new Error("API error: " + res.status);
+                    
+                    registrations = await res.json();
+                    console.log("Registrations:", registrations);
+                    filteredItems = [...registrations];
+                    document.getElementById("studentCount").textContent = registrations.length;
+                    currentPage = 1;
+                    renderTable();
+                } catch (e) {
+                    console.error("Load registrations error:", e);
+                    document.getElementById("studentTableBody").innerHTML = 
+                        `<tr><td colspan="6" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
+                }
+            }
+
+            async function loadStudents() {
+                try {
+                    const res = await fetch(STUDENT_API);
+                    if (!res.ok) throw new Error("API error");
+                    students = await res.json();
+                    
+                    const select = document.getElementById("studentId");
+                    let options = '<option value="">-- Chọn thí sinh --</option>';
+                    students.forEach(s => {
+                        const name = s.name || s.studentName || s.id;
+                        options += `<option value="${s.id}">${name}</option>`;
+                    });
+                    select.innerHTML = options;
+                } catch (e) {
+                    console.error("Load students error:", e);
+                }
+            }
+
+            function renderTable() {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                const pageItems = filteredItems.slice(start, end);
+                
+                let html = "";
+                pageItems.forEach((r, index) => {
+                    const stt = start + index + 1;
+                    const createdAt = r.createdAt ? new Date(r.createdAt).toLocaleDateString("vi-VN") : "";
+                    html += `
+                        <tr>
+                            <td>${stt}</td>
+                            <td><strong>${escapeHtml(r.rollNumber || '')}</strong></td>
+                            <td>${escapeHtml(getStudentName(r.studentId))}</td>
+                            <td>${createdAt}</td>
+                            <td>
+                                <span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">
+                                    ${r.isActive ? 'Hoạt động' : 'Vô hiệu'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRegistration('${r.id}')" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById("studentTableBody").innerHTML = html || 
+                    `<tr><td colspan="6" class="text-center text-muted">Không có thí sinh</td></tr>`;
+
+                // Pagination
+                const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE);
+                let paginationHtml = "";
+                if (totalPages > 1) {
+                    paginationHtml = `<nav><ul class="pagination">`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                        </li>`;
+                    }
+                    paginationHtml += `</ul></nav>`;
+                }
+                document.getElementById("pagination").innerHTML = paginationHtml;
+            }
+
+            function changePage(page) {
+                currentPage = page;
+                renderTable();
+            }
+
+            function escapeHtml(str) {
+                if (!str) return "";
+                return str.toString().replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function truncateId(id) {
+                if (!id) return "";
+                return id.substring(0, 8) + "...";
+            }
+
+            function getStudentName(studentId) {
+                if (!studentId) return "-";
+                const student = students.find(s => String(s.id) === String(studentId));
+                return student ? (student.name || student.fullname || student.code || studentId) : studentId;
+            }
+
+            /* Modal */
+            function showModal() {
+                document.getElementById('studentModal').classList.add('show');
+                document.body.classList.add('modal-open');
+            }
+
+            function closeModal() {
+                document.getElementById('studentModal').classList.remove('show');
+                document.body.classList.remove('modal-open');
+            }
+
+            function openAddModal() {
+                document.getElementById("modalTitle").innerText = "Thêm Thí Sinh";
+                document.getElementById("registrationId").value = "";
+                document.getElementById("studentForm").reset();
+                document.getElementById("isActive").checked = true;
+                showModal();
+            }
+
+            async function saveRegistration() {
+                const id = document.getElementById("registrationId").value;
+                const studentId = document.getElementById("studentId").value;
+                const rollNumber = document.getElementById("rollNumber").value;
+                
+                if (!studentId || !rollNumber) {
+                    alert("Vui lòng nhập đầy đủ thông tin!");
+                    return;
+                }
+
+                const data = {
+                    examId: examId,
+                    examRoomId: examRoomId,
+                    studentId: studentId,
+                    rollNumber: rollNumber,
+                    isActive: document.getElementById("isActive").checked
+                };
+
+                const method = id ? "PUT" : "POST";
+                const url = id ? `${REGISTRATION_API}/${encodeURIComponent(id)}` : REGISTRATION_API;
+
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!res.ok) throw new Error("Lưu thất bại");
+
+                    closeModal();
+                    loadRegistrations();
+                } catch (e) {
+                    alert("Lưu thất bại: " + e.message);
+                }
+            }
+
+            async function deleteRegistration(id) {
+                if (!confirm("Bạn có chắc muốn xóa?")) return;
+                
+                try {
+                    const res = await fetch(`${REGISTRATION_API}/${encodeURIComponent(id)}`, { method: "DELETE" });
+                    if (res.ok) {
+                        loadRegistrations();
+                    } else {
+                        alert("Xóa thất bại!");
+                    }
+                } catch (e) {
+                    alert("Xóa thất bại!");
+                }
+            }
+
+            // Init
+            document.addEventListener('DOMContentLoaded', () => {
+                loadRoomInfo();
+                loadStudents();
+
+                document.getElementById('studentModal').addEventListener('click', function(e) {
+                    if (e.target === this) closeModal();
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

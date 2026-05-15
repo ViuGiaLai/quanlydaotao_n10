@@ -26,6 +26,10 @@ public class CourseClassService {
         return repository.findById(id);
     }
 
+    public List<CourseClass> findBySemesterId(UUID semesterId) {
+        return repository.findBySemesterId(semesterId);
+    }
+
     public CourseClass save(CourseClass courseClass) {
         if (courseClass.getId() == null) {
             courseClass.setCreatedAt(LocalDateTime.now());

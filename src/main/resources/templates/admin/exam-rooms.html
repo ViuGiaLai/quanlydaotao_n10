@@ -3,9 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layout}">
 <head>
-    <title>Exam Rooms</title>
-    
-    <!-- CSS cho Modal thuần -->
+    <title>Quản Lý Phòng Thi</title>
     <style>
         .modal {
             display: none;
@@ -21,12 +19,10 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-
         .modal.show {
             display: flex;
             opacity: 1;
         }
-
         .modal-content {
             background: white;
             border-radius: 8px;
@@ -36,13 +32,17 @@
             transition: transform 0.3s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
         .modal.show .modal-content {
             transform: translateY(0);
         }
-
         body.modal-open {
             overflow: hidden;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -52,28 +52,62 @@
         
         <div class="app-content">
             <div class="container-fluid">
+                <!-- Bộ lọc -->
                 <div class="row mb-3">
-                    <div class="col-12 text-end">
-                        <button class="btn btn-primary" onclick="openAddModal()">
-                            <i class="bi bi-plus-lg"></i> Thêm Phòng Thi
-                        </button>
+                    <div class="col-12">
+                        <div class="filter-section">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tìm kiếm</label>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Tên phòng thi..." oninput="applyFilters()">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Kỳ thi</label>
+                                    <select class="form-select" id="examFilter" onchange="applyFilters()">
+                                        <option value="">-- Tất cả --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Trạng thái</label>
+                                    <select class="form-select" id="statusFilter" onchange="applyFilters()">
+                                        <option value="">-- Tất cả --</option>
+                                        <option value="true">Hoạt động</option>
+                                        <option value="false">Vô hiệu</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-secondary w-100" onclick="resetFilters()">Đặt lại</button>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" onclick="openAddModal()">
+                                        <i class="bi bi-plus-lg"></i> Thêm Mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Bảng dữ liệu -->
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">Danh Sách Phòng Thi</h3>
+                                <span class="badge bg-info ms-2" id="totalCount">0</span>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-striped align-middle">
                                         <thead>
                                             <tr>
-                                                <th>ID Kỳ Thi</th>
+                                                <th>STT</th>
                                                 <th>Tên Phòng Thi</th>
+                                                <th>Kỳ Thi</th>
+                                                <th>Phòng Học</th>
                                                 <th>Sức Chứa</th>
                                                 <th>Trạng Thái</th>
+                                                <th>Ngày Tạo</th>
                                                 <th>Thao Tác</th>
                                             </tr>
                                         </thead>
@@ -88,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Modal Thuần CSS -->
+        <!-- Modal Thêm/Sửa -->
         <div class="modal fade" id="examRoomModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -100,16 +134,22 @@
                         <form id="examRoomForm">
                             <input type="hidden" id="examRoomId">
                             <div class="mb-3">
-                                <label for="examId" class="form-label">ID Kỳ Thi</label>
-                                <input type="text" class="form-control" id="examId">
+                                <label for="examId" class="form-label">Kỳ Thi <span class="text-danger">*</span></label>
+                                <select class="form-select" id="examId" required>
+                                    <option value="">-- Chọn kỳ thi --</option>
+                                </select>
                             </div>
                             <div class="mb-3">
-                                <label for="roomName" class="form-label">Tên Phòng</label>
-                                <input type="text" class="form-control" id="roomName">
+                                <label for="roomId" class="form-label">Phòng Học</label>
+                                <input type="text" class="form-control" id="roomId" placeholder="UUID phòng học">
+                            </div>
+                            <div class="mb-3">
+                                <label for="examRoomName" class="form-label">Tên Phòng Thi <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="examRoomName" required placeholder="VD: Phòng 101 - Ca 1">
                             </div>
                             <div class="mb-3">
                                 <label for="capacity" class="form-label">Sức Chứa</label>
-                                <input type="number" class="form-control" id="capacity">
+                                <input type="number" class="form-control" id="capacity" placeholder="30" min="0">
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">
@@ -131,62 +171,170 @@
     <th:block layout:fragment="script">
         <script>
             const API_URL = "/api/exam-rooms";
+            const EXAM_API = "/api/exams";
             const PAGE_SIZE = 10;
             let examRoomItems = [];
+            let examItems = [];
+            let roomItems = [];
             let currentPage = 1;
+            let filteredItems = [];
 
+            // Load dữ liệu
             async function loadExamRooms() {
                 try {
                     const res = await fetch(API_URL);
                     if (!res.ok) throw new Error("API error: " + res.status);
                     const data = await res.json();
+                    console.log("Exam rooms data:", data);
                     examRoomItems = Array.isArray(data) ? data : [];
+                    filteredItems = [...examRoomItems];
                     currentPage = 1;
-                    renderTable();
+                    applyFilters();
                 } catch (e) {
                     console.error("Load error:", e);
-                    const tableBody = document.getElementById("examTableBody");
-                    if (tableBody) {
-                        tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi: ${e.message}</td></tr>`;
-                    }
                 }
             }
 
+            async function loadExams() {
+                try {
+                    const res = await fetch(EXAM_API);
+                    if (!res.ok) throw new Error("API error: " + res.status);
+                    const data = await res.json();
+                    examItems = Array.isArray(data) ? data : [];
+                    renderExamSelect();
+                } catch (e) {
+                    console.error("Load exams error:", e);
+                }
+            }
+
+            async function loadRooms() {
+                try {
+                    const res = await fetch("/api/rooms");
+                    if (!res.ok) throw new Error("API error: " + res.status);
+                    const data = await res.json();
+                    roomItems = Array.isArray(data) ? data : [];
+                } catch (e) {
+                    console.error("Load rooms error:", e);
+                }
+            }
+
+            function getExamName(examId) {
+                if (!examId) return "-";
+                const exam = examItems.find(e => String(e.id) === String(examId));
+                return exam ? (exam.name || exam.examName || examId) : examId;
+            }
+
+            function getRoomName(roomId) {
+                if (!roomId) return "-";
+                const room = roomItems.find(r => String(r.id) === String(roomId));
+                return room ? (room.name || room.roomName || roomId) : roomId;
+            }
+
+            function renderExamSelect() {
+                const select = document.getElementById("examFilter");
+                const modalSelect = document.getElementById("examId");
+                let options = '<option value="">-- Tất cả --</option>';
+                let modalOptions = '<option value="">-- Chọn kỳ thi --</option>';
+                
+                examItems.forEach(e => {
+                    const examName = e.name || e.id;
+                    options += `<option value="${e.id}">${examName}</option>`;
+                    modalOptions += `<option value="${e.id}">${examName}</option>`;
+                });
+                
+                if (select) select.innerHTML = options;
+                if (modalSelect) modalSelect.innerHTML = modalOptions;
+            }
+
+            function applyFilters() {
+                const search = document.getElementById("searchInput").value.toLowerCase();
+                const examFilter = document.getElementById("examFilter").value;
+                const statusFilter = document.getElementById("statusFilter").value;
+
+                filteredItems = examRoomItems.filter(r => {
+                    const matchSearch = !search || 
+                        (r.examRoomName && r.examRoomName.toLowerCase().includes(search));
+                    const matchExam = !examFilter || r.examId === examFilter;
+                    const matchStatus = statusFilter === "" || 
+                        (r.isActive === (statusFilter === "true"));
+                    return matchSearch && matchExam && matchStatus;
+                });
+
+                document.getElementById("totalCount").textContent = filteredItems.length;
+                currentPage = 1;
+                renderTable();
+            }
+
+            function resetFilters() {
+                document.getElementById("searchInput").value = "";
+                document.getElementById("examFilter").value = "";
+                document.getElementById("statusFilter").value = "";
+                applyFilters();
+            }
+
             function renderTable() {
-                const pageItems = AdminPagination.paginate(examRoomItems, currentPage, PAGE_SIZE);
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                const pageItems = filteredItems.slice(start, end);
+                
                 let html = "";
-                pageItems.forEach(r => {
+                pageItems.forEach((r, index) => {
+                    const stt = start + index + 1;
+                    const createdAt = r.createdAt ? new Date(r.createdAt).toLocaleDateString("vi-VN") : "";
                     html += `
                         <tr>
-                            <td>${escapeHtml(r.examId || '')}</td>
-                            <td>${escapeHtml(r.examRoomName || '')}</td>
+                            <td>${stt}</td>
+                            <td><strong>${escapeHtml(r.examRoomName || '')}</strong></td>
+                            <td>${escapeHtml(getExamName(r.examId))}</td>
+                            <td>${escapeHtml(getRoomName(r.roomId))}</td>
                             <td>${r.capacity || ''}</td>
-                            <td><span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">${r.isActive ? 'Hoạt động' : 'Vô hiệu'}</span></td>
                             <td>
-                                <button class="btn btn-warning btn-sm me-1" onclick="editExamRoom('${r.id}')">
+                                <span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">
+                                    ${r.isActive ? 'Hoạt động' : 'Vô hiệu'}
+                                </span>
+                            </td>
+                            <td>${createdAt}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm me-1" onclick="viewDetail('${r.id}')" title="Xem chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-warning btn-sm me-1" onclick="editExamRoom('${r.id}')" title="Sửa">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteExamRoom('${r.id}')">
+                                <button class="btn btn-danger btn-sm" onclick="deleteExamRoom('${r.id}')" title="Xóa">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
+                
                 document.getElementById("examTableBody").innerHTML = html || 
-                    `<tr><td colspan="5" class="text-center text-muted">Không có dữ liệu</td></tr>`;
+                    `<tr><td colspan="8" class="text-center text-muted">Không có dữ liệu</td></tr>`;
 
-                if (typeof AdminPagination !== 'undefined' && AdminPagination.render) {
-                    AdminPagination.render("examRoomPagination", examRoomItems.length, currentPage, PAGE_SIZE, (nextPage) => {
-                        currentPage = nextPage;
-                        renderTable();
-                    });
+                // Pagination
+                const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE);
+                let paginationHtml = "";
+                if (totalPages > 1) {
+                    paginationHtml = `<nav><ul class="pagination">`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                        </li>`;
+                    }
+                    paginationHtml += `</ul></nav>`;
                 }
+                document.getElementById("examRoomPagination").innerHTML = paginationHtml;
+            }
+
+            function changePage(page) {
+                currentPage = page;
+                renderTable();
             }
 
             function escapeHtml(str) {
                 if (!str) return "";
-                return str.replace(/[&<>]/g, function(m) {
+                return str.toString().replace(/[&<>]/g, function(m) {
                     if (m === '&') return '&amp;';
                     if (m === '<') return '&lt;';
                     if (m === '>') return '&gt;';
@@ -194,7 +342,12 @@
                 });
             }
 
-            /*  MODAL  */
+            function truncateId(id) {
+                if (!id) return "";
+                return id.substring(0, 8) + "...";
+            }
+
+            /* Modal functions */
             function showModal() {
                 const modal = document.getElementById('examRoomModal');
                 if (modal) {
@@ -226,24 +379,33 @@
                 document.getElementById("modalTitle").innerText = "Chỉnh Sửa Phòng Thi";
                 document.getElementById("examRoomId").value = r.id || "";
                 document.getElementById("examId").value = r.examId || "";
-                document.getElementById("roomName").value = r.examRoomName || "";
+                document.getElementById("roomId").value = r.roomId || "";
+                document.getElementById("examRoomName").value = r.examRoomName || "";
                 document.getElementById("capacity").value = r.capacity || "";
-                document.getElementById("isActive").checked = !!r.isActive;
+                document.getElementById("isActive").checked = r.isActive !== false;
 
                 showModal();
             }
 
             async function saveExamRoom() {
                 const id = document.getElementById("examRoomId").value;
+                const examId = document.getElementById("examId").value;
+                
+                if (!examId) {
+                    alert("Vui lòng chọn kỳ thi!");
+                    return;
+                }
+
                 const roomData = {
-                    examId: document.getElementById("examId").value,
-                    examRoomName: document.getElementById("roomName").value,
-                    capacity: parseInt(document.getElementById("capacity").value) || 0,
+                    examId: examId,
+                    roomId: document.getElementById("roomId").value || null,
+                    examRoomName: document.getElementById("examRoomName").value,
+                    capacity: parseInt(document.getElementById("capacity").value) || null,
                     isActive: document.getElementById("isActive").checked
                 };
 
                 const method = id ? "PUT" : "POST";
-                const url = id ? `${API_URL}/${id}` : API_URL;
+                const url = id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL;
 
                 try {
                     const res = await fetch(url, {
@@ -263,22 +425,40 @@
             }
 
             async function deleteExamRoom(id) {
-                if (!confirm("Bạn có chắc chắn muốn xóa phòng thi này không?")) return;
+                if (!confirm("Bạn có chắc chắn muốn xóa phòng thi này?")) return;
+                
                 try {
-                    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-                    if (res.ok) loadExamRooms();
-                    else alert("Xóa thất bại!");
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
+                    if (res.ok) {
+                        loadExamRooms();
+                    } else {
+                        alert("Xóa thất bại!");
+                    }
                 } catch (error) {
                     console.error("Delete error:", error);
                     alert("Xóa thất bại!");
                 }
             }
 
-            /*  INIT  */
+            function viewDetail(id) {
+                const r = examRoomItems.find(x => String(x.id) === String(id));
+                if (!r) {
+                    alert("Không tìm thấy phòng thi!");
+                    return;
+                }
+                
+                console.log("View detail - Room:", r);
+                const url = `/admin/exam-room-detail?roomId=${encodeURIComponent(r.id)}&examId=${encodeURIComponent(r.examId || '')}`;
+                console.log("Navigate to:", url);
+                window.location.href = url;
+            }
+
+            // Init
             document.addEventListener('DOMContentLoaded', () => {
                 loadExamRooms();
+                loadExams();
+                loadRooms();
 
-                // Đóng modal khi click backdrop
                 const modal = document.getElementById('examRoomModal');
                 if (modal) {
                     modal.addEventListener('click', function(e) {

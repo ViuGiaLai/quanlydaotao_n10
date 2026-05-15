@@ -26,7 +26,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="exam : ${exams}">
-                            <td th:text="${exam.examTypeId}">-</td>
+                            <td th:text="${examTypeMap.get(exam.examTypeId.toString()) ?: exam.examTypeId}">-</td>
                             <td th:text="${exam.examDate}">-</td>
                             <td th:text="${exam.examStatus}">-</td>
                             <td th:text="${exam.supervisorCount}">0</td>

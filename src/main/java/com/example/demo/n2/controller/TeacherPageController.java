@@ -19,6 +19,7 @@ import com.example.demo.n10.service.ExamResultService;
 import com.example.demo.n10.service.ExamPaperService;
 import com.example.demo.n10.service.ExamService;
 import com.example.demo.n10.service.ExamRegistrationService;
+import com.example.demo.n10.service.ExamRoomService;
 import com.example.demo.n1.model.entity.User;
 import com.example.demo.n2.model.entity.Student;
 import com.example.demo.n2.model.entity.Teacher;
@@ -35,17 +36,20 @@ public class TeacherPageController {
     private final ExamResultService examResultService;
     private final ExamPaperService examPaperService;
     private final ExamRegistrationService examRegistrationService;
+    private final ExamRoomService examRoomService;
     private final UserRepository userRepository;
 
     public TeacherPageController(TeacherService teacherService, StudentService studentService,
             ExamService examService, ExamResultService examResultService, ExamPaperService examPaperService,
-            ExamRegistrationService examRegistrationService, UserRepository userRepository) {
+            ExamRegistrationService examRegistrationService, ExamRoomService examRoomService, 
+            UserRepository userRepository) {
         this.teacherService = teacherService;
         this.studentService = studentService;
         this.examService = examService;
         this.examResultService = examResultService;
         this.examPaperService = examPaperService;
         this.examRegistrationService = examRegistrationService;
+        this.examRoomService = examRoomService;
         this.userRepository = userRepository;
     }
 
@@ -114,6 +118,15 @@ public class TeacherPageController {
         // Get exams that teacher is responsible for
         List<Exam> exams = examService.getAllExams();
         model.addAttribute("exams", exams);
+        
+        // Lấy exam types để hiển thị tên
+        var examTypes = examService.getAllExamTypes();
+        java.util.Map<String, String> examTypeMap = new java.util.HashMap<>();
+        for (var et : examTypes) {
+            examTypeMap.put(et.getId().toString(), et.getName());
+        }
+        model.addAttribute("examTypeMap", examTypeMap);
+        
         return "teacher/exams";
     }
 
@@ -166,6 +179,15 @@ public class TeacherPageController {
     public String examPapers(Model model) {
         List<ExamPaper> papers = examPaperService.findAll();
         model.addAttribute("papers", papers);
+        
+        // Lấy exam types để hiển thị tên
+        var examTypes = examService.getAllExamTypes();
+        java.util.Map<String, String> examTypeMap = new java.util.HashMap<>();
+        for (var et : examTypes) {
+            examTypeMap.put(et.getId().toString(), et.getName());
+        }
+        model.addAttribute("examTypeMap", examTypeMap);
+        
         return "teacher/exam-papers";
     }
 
@@ -184,6 +206,23 @@ public class TeacherPageController {
         // Show attendance for teacher's exams - get all registrations
         List<ExamRegistration> registrations = examRegistrationService.findAll();
         model.addAttribute("registrations", registrations);
+        
+        // Lấy students và examRooms để hiển thị tên
+        var students = studentService.findAll();
+        var examRooms = examRoomService.getAllExamRooms();
+        
+        java.util.Map<String, String> studentMap = new java.util.HashMap<>();
+        for (var s : students) {
+            studentMap.put(s.getId().toString(), s.getFullname());
+        }
+        model.addAttribute("studentMap", studentMap);
+        
+        java.util.Map<String, String> examRoomMap = new java.util.HashMap<>();
+        for (var er : examRooms) {
+            examRoomMap.put(er.getId().toString(), er.getExamRoomName());
+        }
+        model.addAttribute("examRoomMap", examRoomMap);
+        
         return "teacher/attendance";
     }
 

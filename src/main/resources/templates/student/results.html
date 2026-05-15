@@ -27,7 +27,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="result : ${results}">
-                            <td th:text="${result.examId}">-</td>
+                            <td th:text="${examTypeMap.get(result.examId) ?: result.examId}">-</td>
                             <td>-</td>
                             <td th:text="${result.score ?: '-'}">-</td>
                             <td>

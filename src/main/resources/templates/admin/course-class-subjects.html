@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Phân Công Môn-Lớp - Admin</title>
+    <th:block th:with="activePage='course-class-subjects'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-book"></i> Phân Công Môn-Lớp</h2>
+        </div>
+
+        <!-- Chọn học kỳ và lớp -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter"></i> Chọn Học Kỳ và Lớp</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Học Kỳ</label>
+                        <select class="form-select" id="semesterId" onchange="loadCourseClasses()">
+                            <option value="">-- Chọn Học Kỳ --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Lớp Học</label>
+                        <select class="form-select" id="courseClassId" onchange="loadSubjects()">
+                            <option value="">-- Chọn Lớp --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Thêm Môn Học</label>
+                        <select class="form-select" id="newSubjectId">
+                            <option value="">-- Chọn Môn --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Hành Động</label>
+                        <button class="btn btn-success" onclick="addSubject()">
+                            <i class="fas fa-plus"></i> Thêm Môn
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách môn của lớp -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Môn Học</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã Môn</th>
+                            <th>Tên Môn</th>
+                            <th>Giảng Viên</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectTable">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                Vui lòng chọn học kỳ và lớp học
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa Giảng Viên -->
+    <div class="modal fade" id="editTeacherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Phân Công Giảng Viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="ccsId">
+                    <div class="mb-3">
+                        <label class="form-label">Môn Học</label>
+                        <input type="text" class="form-control" id="ccsSubjectName" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giảng Viên</label>
+                        <select class="form-select" id="teacherId">
+                            <option value="">-- Chọn Giảng Viên --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveTeacher()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const API_CCS = '/api/course-class-subjects';
+        const API_SUBJECTS = '/api/subjects/list';
+        const API_SEMESTERS = '/api/semesters/list';
+        const API_COURSE_CLASSES = '/api/course-classes/list';
+        const API_USERS = '/api/users/list';
+
+        let allSubjects = [];
+        let allTeachers = [];
+
+        // Load lookup data
+        window.loadLookupData = async function () {
+            try {
+                const [semestersRes, subjectsRes, usersRes] = await Promise.all([
+                    fetch(API_SEMESTERS),
+                    fetch(API_SUBJECTS),
+                    fetch(API_USERS + '?role=TEACHER')
+                ]);
+                
+                const semesters = await semestersRes.json();
+                allSubjects = await subjectsRes.json();
+                allTeachers = await usersRes.json();
+                
+                // Fill semesters
+                const semesterSelect = document.getElementById("semesterId");
+                semesters.forEach(s => {
+                    semesterSelect.innerHTML += `<option value="${s.id}">${s.name || s.semesterName}</option>`;
+                });
+                
+                // Fill subjects dropdown
+                const subjectSelect = document.getElementById("newSubjectId");
+                allSubjects.forEach(s => {
+                    subjectSelect.innerHTML += `<option value="${s.id}">${s.subjectCode} - ${s.subjectName}</option>`;
+                });
+            } catch (e) {
+                console.error("Load lookup error:", e);
+            }
+        }
+
+        // Load course classes by semester
+        window.loadCourseClasses = async function () {
+            const semesterId = document.getElementById("semesterId").value;
+            const classSelect = document.getElementById("courseClassId");
+            
+            classSelect.innerHTML = '<option value="">-- Chọn Lớp --</option>';
+            
+            if (!semesterId) {
+                renderSubjectTable([]);
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_COURSE_CLASSES}?semesterId=${semesterId}`);
+                const classes = await res.json();
+                
+                classes.forEach(c => {
+                    classSelect.innerHTML += `<option value="${c.id}">${c.classCode} - ${c.className}</option>`;
+                });
+            } catch (e) {
+                console.error("Load classes error:", e);
+            }
+        }
+
+        // Load subjects for selected class
+        window.loadSubjects = async function () {
+            const courseClassId = document.getElementById("courseClassId").value;
+            
+            if (!courseClassId) {
+                renderSubjectTable([]);
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_CCS}?courseClassId=${courseClassId}`);
+                const data = await res.json();
+                renderSubjectTable(data);
+            } catch (e) {
+                console.error("Load subjects error:", e);
+            }
+        }
+
+        // Render table
+        window.renderSubjectTable = function (data) {
+            const tbody = document.getElementById("subjectTable");
+            ccsData = data;
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Chưa có môn học nào</td></tr>`;
+                return;
+            }
+            
+            let html = '';
+            data.forEach((item, index) => {
+                const subject = allSubjects.find(s => s.id === item.subjectId) || {};
+                const teacher = allTeachers.find(t => t.id === item.teacherId) || {};
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${subject.subjectCode || '-'}</td>
+                        <td>${subject.subjectName || '-'}</td>
+                        <td>${teacher.fullName || teacher.name || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm me-1" onclick="editTeacher('${item.id}')">
+                                <i class="fas fa-user-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSubject('${item.id}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // Add subject to class
+        window.addSubject = async function () {
+            const courseClassId = document.getElementById("courseClassId").value;
+            const subjectId = document.getElementById("newSubjectId").value;
+            
+            if (!courseClassId || !subjectId) {
+                alert('Vui lòng chọn lớp học và môn học');
+                return;
+            }
+            
+            try {
+                const res = await fetch(API_CCS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        courseClassId: courseClassId,
+                        subjectId: subjectId
+                    })
+                });
+                
+                if (res.ok) {
+                    alert('Thêm môn thành công!');
+                    loadSubjects();
+                } else {
+                    alert('Lỗi khi thêm môn');
+                }
+            } catch (e) {
+                console.error("Add error:", e);
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        // Delete subject from class
+        window.deleteSubject = async function (id) {
+            if (!confirm('Bạn có chắc muốn xóa môn học này khỏi lớp?')) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_CCS}/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (res.ok) {
+                    alert('Xóa thành công!');
+                    loadSubjects();
+                } else {
+                    alert('Lỗi khi xóa');
+                }
+            } catch (e) {
+                console.error("Delete error:", e);
+            }
+        }
+
+        // Edit teacher - show modal
+        window.editTeacher = function (id) {
+            const item = ccsData.find(c => c.id === id);
+            if (!item) return;
+            
+            const subject = allSubjects.find(s => s.id === item.subjectId) || {};
+            const teacher = allTeachers.find(t => t.id === item.teacherId) || {};
+            
+            document.getElementById("ccsId").value = id;
+            document.getElementById("ccsSubjectName").value = subject.subjectName || '-';
+            
+            // Fill teachers
+            const teacherSelect = document.getElementById("teacherId");
+            teacherSelect.innerHTML = '<option value="">-- Chọn Giảng Viên --</option>';
+            allTeachers.forEach(t => {
+                teacherSelect.innerHTML += `<option value="${t.id}" ${t.id === item.teacherId ? 'selected' : ''}>${t.fullName || t.name || t.username}</option>`;
+            });
+            
+            var modalEl = document.getElementById('editTeacherModal');
+            if (modalEl) {
+                var myModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                myModal.show();
+                // Scroll lên modal
+                setTimeout(() => {
+                    modalEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+
+        // Save teacher assignment
+        window.saveTeacher = async function () {
+            const id = document.getElementById("ccsId").value;
+            const teacherId = document.getElementById("teacherId").value;
+            
+            if (!teacherId) {
+                alert('Vui lòng chọn giảng viên');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_CCS}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teacherId: teacherId })
+                });
+                
+                if (res.ok) {
+                    alert('Lưu thành công!');
+                    var modalEl = document.getElementById('editTeacherModal');
+                    if (modalEl) {
+                        var myModal = bootstrap.Modal.getInstance(modalEl);
+                        if (myModal) myModal.hide();
+                    }
+                    loadSubjects();
+                } else {
+                    alert('Lỗi khi lưu');
+                }
+            } catch (e) {
+                console.error("Save error:", e);
+            }
+        }
+
+        let ccsData = [];
+
+        // Init
+        loadLookupData();
+    </script>
+    </div>
+</body>
+</html>

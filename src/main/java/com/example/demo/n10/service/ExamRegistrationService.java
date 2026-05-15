@@ -22,7 +22,7 @@ public class ExamRegistrationService {
         this.examRegistrationRepository = examRegistrationRepository;
     }
 
-    // Hiển thị tất cả đăng ký thi
+    // Hiển thị tất cả đ��ng ký thi
     public List<ExamRegistration> findAll() {
         return examRegistrationRepository.findAll();
     }
@@ -33,6 +33,31 @@ public class ExamRegistrationService {
             throw new RuntimeException("Đăng ký thi với ID " + id + " không tồn tại.");
         }
         return examRegistrationRepository.findById(id);
+    }
+
+    // Lọc theo examRoomId - lấy danh sách thí sinh trong 1 phòng thi
+    public List<ExamRegistration> findByExamRoomId(String examRoomId) {
+        return examRegistrationRepository.findByExamRoomId(examRoomId);
+    }
+
+    // Lọc theo examId
+    public List<ExamRegistration> findByExamId(String examId) {
+        return examRegistrationRepository.findByExamId(examId);
+    }
+
+    // Lọc theo examId và examRoomId
+    public List<ExamRegistration> findByExamIdAndExamRoomId(String examId, String examRoomId) {
+        return examRegistrationRepository.findByExamIdAndExamRoomId(examId, examRoomId);
+    }
+
+    // Lọc theo studentId
+    public List<ExamRegistration> findByStudentId(String studentId) {
+        return examRegistrationRepository.findByStudentId(studentId);
+    }
+
+    // Lọc theo isActive
+    public List<ExamRegistration> findByIsActive(Boolean isActive) {
+        return examRegistrationRepository.findByIsActive(isActive);
     }
 
     // Lưu hoặc cập nhật đăng ký thi

@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.example.demo.n10.model.entity.Exam;
 import com.example.demo.n10.model.entity.ExamRegistration;
 import com.example.demo.n10.model.entity.ExamResult;
+import com.example.demo.n10.model.constants.ScoreStatus;
 import com.example.demo.n10.service.ExamRegistrationService;
 import com.example.demo.n10.service.ExamResultService;
 import com.example.demo.n10.service.ExamService;
+import com.example.demo.n10.service.ExamRoomService;
 import com.example.demo.n1.model.entity.User;
 import com.example.demo.n2.model.entity.Student;
 import com.example.demo.n2.service.StudentService;
@@ -28,15 +30,17 @@ public class StudentPageController {
     private final ExamService examService;
     private final ExamRegistrationService examRegistrationService;
     private final ExamResultService examResultService;
+    private final ExamRoomService examRoomService;
     private final UserRepository userRepository;
 
     public StudentPageController(StudentService studentService, ExamService examService,
             ExamRegistrationService examRegistrationService, ExamResultService examResultService,
-            UserRepository userRepository) {
+            ExamRoomService examRoomService, UserRepository userRepository) {
         this.studentService = studentService;
         this.examService = examService;
         this.examRegistrationService = examRegistrationService;
         this.examResultService = examResultService;
+        this.examRoomService = examRoomService;
         this.userRepository = userRepository;
     }
 
@@ -113,6 +117,18 @@ public class StudentPageController {
     public String studentExams(Model model, Authentication auth) {
         List<Exam> exams = examService.getAllExams();
         model.addAttribute("exams", exams);
+        
+        // Lấy exam types để hiển thị tên
+        var examTypes = examService.getAllExamTypes();
+        model.addAttribute("examTypes", examTypes);
+        
+        // Tạo map examTypeId -> typeName
+        java.util.Map<String, String> examTypeMap = new java.util.HashMap<>();
+        for (var et : examTypes) {
+            examTypeMap.put(et.getId().toString(), et.getName());
+        }
+        model.addAttribute("examTypeMap", examTypeMap);
+        
         return "student/exams";
     }
 
@@ -144,6 +160,29 @@ public class StudentPageController {
                     .filter(r -> student.getId().toString().equals(r.getStudentId()))
                     .toList();
             model.addAttribute("registrations", registrations);
+            
+            // Lấy exam types và exams để hiển thị tên
+            var examTypes = examService.getAllExamTypes();
+            var exams = examService.getAllExams();
+            var examRooms = examRoomService.getAllExamRooms();
+            
+            java.util.Map<String, String> examTypeMap = new java.util.HashMap<>();
+            for (var et : examTypes) {
+                examTypeMap.put(et.getId().toString(), et.getName());
+            }
+            model.addAttribute("examTypeMap", examTypeMap);
+            
+            java.util.Map<String, String> examMap = new java.util.HashMap<>();
+            for (var e : exams) {
+                examMap.put(e.getId().toString(), e.getName());
+            }
+            model.addAttribute("examMap", examMap);
+            
+            java.util.Map<String, String> examRoomMap = new java.util.HashMap<>();
+            for (var er : examRooms) {
+                examRoomMap.put(er.getId().toString(), er.getExamRoomName());
+            }
+            model.addAttribute("examRoomMap", examRoomMap);
         }
         return "student/registrations";
     }
@@ -152,10 +191,20 @@ public class StudentPageController {
     public String myResults(Model model, Authentication auth) {
         Student student = getCurrentStudent(auth);
         if (student != null) {
+            // Chỉ lấy điểm đã được duyệt (APPROVED)
             List<ExamResult> results = examResultService.findAll().stream()
                     .filter(r -> student.getId().toString().equals(r.getRegistrationId().toString()))
+                    .filter(r -> ScoreStatus.isApproved(r.getStatus()))
                     .toList();
             model.addAttribute("results", results);
+            
+            // Lấy exam types để hiển thị tên
+            var examTypes = examService.getAllExamTypes();
+            java.util.Map<String, String> examTypeMap = new java.util.HashMap<>();
+            for (var et : examTypes) {
+                examTypeMap.put(et.getId().toString(), et.getName());
+            }
+            model.addAttribute("examTypeMap", examTypeMap);
         }
         return "student/results";
     }

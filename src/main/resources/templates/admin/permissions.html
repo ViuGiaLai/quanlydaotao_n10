@@ -241,7 +241,7 @@
                 };
 
                 const method = id ? "PUT" : "POST";
-                const url = id ? `${API_URL}/${id}` : API_URL;
+                const url = id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL;
 
                 try {
                     const res = await fetch(url, {
@@ -266,7 +266,7 @@
             async function deletePermission(id) {
                 if (!confirm("Bạn có chắc chắn muốn xóa quyền này không?")) return;
                 try {
-                    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                     if (!res.ok) throw new Error("Xóa thất bại");
                     loadPermissions();
                 } catch (error) {

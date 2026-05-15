@@ -258,7 +258,7 @@
                     isSystem: document.getElementById("isSystem").checked
                 };
 
-                const url = id ? `${API_URL}/${id}` : API_URL;
+                const url = id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL;
                 const method = id ? "PUT" : "POST";
 
                 try {
@@ -281,7 +281,7 @@
             async function deleteRole(id) {
                 if (!confirm("Bạn có chắc muốn xóa vai trò này không?")) return;
                 try {
-                    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
                     if (res.ok) loadRoles();
                     else alert("Xóa thất bại!");
                 } catch (e) {

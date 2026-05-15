@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.example.demo", "com.example.demo.n10"}) // Thêm dòng này
+@ComponentScan(basePackages = {"com.example.demo", "com.example.demo.n1", "com.example.demo.n2", "com.example.demo.n10"})
 public class DemoApplication {
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);

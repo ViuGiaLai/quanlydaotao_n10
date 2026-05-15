@@ -26,9 +26,9 @@
                     </thead>
                     <tbody>
                         <tr th:each="reg : ${registrations}">
-                            <td th:text="${reg.studentId}">-</td>
+                            <td th:text="${studentMap.get(reg.studentId) ?: reg.studentId}">-</td>
                             <td>-</td>
-                            <td th:text="${reg.examRoomId}">-</td>
+                            <td th:text="${examRoomMap.get(reg.examRoomId) ?: reg.examRoomId}">-</td>
                             <td><span class="badge bg-warning">Chưa điểm danh</span></td>
                             <td>
                                 <form th:action="@{/teacher/attendance/mark}" method="post" class="d-inline">

@@ -67,13 +67,38 @@
             color: #fff7e3;
         }
 
-        .sidebar a.active {
-            background: #8b5a2b;
-            /* Nâu đất khi active */
+        .sidebar a.active,
+        .sidebar a.nav-link.active,
+        .sidebar a.nav-link.ps-4.active {
+            background: #8b5a2b !important;
             border-left: 6px solid #f5cd94;
             font-weight: bold;
-            color: #fff2cf;
+            color: #fff2cf !important;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Active state for child menu items */
+        .nav-link.ps-4.active {
+            background: #8b5a2b !important;
+            color: #fff2cf !important;
+            border-left: 6px solid #f5cd94;
+            display: block;
+        }
+
+        /* Smooth menu animation - Ant Design Collapse style */
+        #heThong, #giangDay, #chamDiem, #thiCu {
+            overflow: hidden;
+            transition: all 0.25s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #heThong.show, #giangDay.show, #chamDiem.show, #thiCu.show {
+            max-height: 500px;
+            opacity: 1;
+            padding: 0;
         }
 
         /* User info style cũ */
@@ -375,6 +400,67 @@
         .text-muted {
             color: #6b5a3a !important;
         }
+
+        /* Collapsible menu styles */
+        .sidebar .nav-item {
+            border-bottom: 1px solid #527a66;
+        }
+
+        .sidebar .nav-link {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: #f9efcf;
+            text-decoration: none;
+            transition: 0.1s linear;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #527a66;
+            cursor: pointer;
+        }
+
+        .sidebar .nav-link:hover {
+            background: #2e5a48;
+            border-left: 5px solid #e0b062;
+            padding-left: 20px;
+            color: #fff7e3;
+        }
+
+        .sidebar .nav-link.active {
+            background: #8b5a2b;
+            border-left: 6px solid #f5cd94;
+            font-weight: bold;
+            color: #fff2cf;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar .nav-link.collapsed i:last-child {
+            transition: transform 0.3s;
+        }
+
+        .sidebar .nav-link:not(.collapsed) i:last-child {
+            transform: rotate(180deg);
+        }
+
+        .sidebar ul.components {
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul.components .collapse {
+            background: #344d40;
+        }
+
+        .sidebar ul.components .collapse .nav-link {
+            padding: 10px 20px 10px 30px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #4a6b5a;
+        }
+
+        .sidebar ul.components .collapse .nav-link:hover {
+            padding-left: 30px;
+        }
     </style>
 </head>
 
@@ -385,30 +471,90 @@
                 <i class="fas fa-chalkboard-teacher me-2"></i>
                 <span th:text="${teacher?.fullname ?: 'Giảng Viên'}">Giảng Viên</span>
             </div>
-            <a th:href="@{/teacher}" th:classappend="${activePage == 'dashboard'} ? 'active'">
-                <i class="fas fa-home me-2"></i> Trang Chủ
-            </a>
-            <a th:href="@{/teacher/exams}" th:classappend="${activePage == 'exams'} ? 'active'">
-                <i class="fas fa-calendar-alt me-2"></i> Kỳ Thi Phụ Trách
-            </a>
-            <a th:href="@{/teacher/students}" th:classappend="${activePage == 'students'} ? 'active'">
-                <i class="fas fa-users me-2"></i> Danh Sách SV
-            </a>
-            <a th:href="@{/teacher/scores}" th:classappend="${activePage == 'scores'} ? 'active'">
-                <i class="fas fa-edit me-2"></i> Nhập Điểm
-            </a>
-            <a th:href="@{/teacher/exam-papers}" th:classappend="${activePage == 'exam-papers'} ? 'active'">
-                <i class="fas fa-file-alt me-2"></i> Đề Thi
-            </a>
-            <a th:href="@{/teacher/attendance}" th:classappend="${activePage == 'attendance'} ? 'active'">
-                <i class="fas fa-clipboard-check me-2"></i> Điểm Danh
-            </a>
-            <form th:action="@{/logout}" method="post" style="display: inline;">
-                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
-                <button type="submit" style="background: none; border: none; padding: 12px 20px; width: 100%; text-align: left; cursor: pointer; color: #f9efcf; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #527a66; font-weight: 500; letter-spacing: 0.3px; transition: 0.1s linear;">
-                    <i class="fas fa-sign-out-alt me-2"></i> Đăng Xuất
-                </button>
-            </form>
+
+            <ul class="list-unstyled components p-0 m-0">
+                <!-- HỆ THỐNG -->
+                <li class="nav-item">
+                    <a href="javascript:void(0)" data-menu="heThong" class="nav-link collapsed">
+                        <i class="fas fa-cog me-2"></i>
+                        <span>HỆ THỐNG</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="heThong" class="list-unstyled">
+                        <li>
+                            <a th:href="@{/teacher}" class="nav-link ps-4" th:classappend="${activePage == 'dashboard'} ? 'active'">
+                                <i class="fas fa-home me-2"></i> Trang Chủ
+                            </a>
+                        </li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="p-0 m-0">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+                                <button type="submit" class="nav-link ps-4" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; color: #f9efcf; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #527a66; font-weight: 500; letter-spacing: 0.3px; transition: 0.1s linear;">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng Xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- CÔNG VIỆC GIẢNG DẠY -->
+                <li class="nav-item">
+                    <a href="javascript:void(0)" data-menu="giangDay" class="nav-link collapsed">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>
+                        <span>CÔNG VIỆC GIẢNG DẠY</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="giangDay" class="list-unstyled">
+                        <li>
+                            <a th:href="@{/teacher/exams}" class="nav-link ps-4" th:classappend="${activePage == 'exams'} ? 'active'">
+                                <i class="fas fa-calendar-alt me-2"></i> Kỳ thi phụ trách
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/teacher/students}" class="nav-link ps-4" th:classappend="${activePage == 'students'} ? 'active'">
+                                <i class="fas fa-users me-2"></i> Danh sách sinh viên
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- CHẤM ĐIỂM -->
+                <li class="nav-item">
+                    <a href="javascript:void(0)" data-menu="chamDiem" class="nav-link collapsed">
+                        <i class="fas fa-edit me-2"></i>
+                        <span>CHẤM ĐIỂM</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="chamDiem" class="list-unstyled">
+                        <li>
+                            <a th:href="@{/teacher/scores}" class="nav-link ps-4" th:classappend="${activePage == 'scores'} ? 'active'">
+                                <i class="fas fa-edit me-2"></i> Nhập điểm
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- THI CỬ -->
+                <li class="nav-item">
+                    <a href="javascript:void(0)" data-menu="thiCu" class="nav-link collapsed">
+                        <i class="fas fa-file-alt me-2"></i>
+                        <span>THI CỬ</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="thiCu" class="list-unstyled">
+                        <li>
+                            <a th:href="@{/teacher/exam-papers}" class="nav-link ps-4" th:classappend="${activePage == 'exam-papers'} ? 'active'">
+                                <i class="fas fa-file-alt me-2"></i> Đề thi
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/teacher/attendance}" class="nav-link ps-4" th:classappend="${activePage == 'attendance'} ? 'active'">
+                                <i class="fas fa-clipboard-check me-2"></i> Điểm danh
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
         <div class="content flex-grow-1 p-4">
             <th:block layout:fragment="content"></th:block>
@@ -418,12 +564,43 @@
     <script>
         // giữ nguyên hoàn toàn logic nhưng nếu cần toggle cho mobile
         document.addEventListener('DOMContentLoaded', function () {
-            // chỉ để đảm bảo sidebar có thể ẩn hiện khi dùng thêm nút (không ảnh hưởng logic chính)
-            var sidebar = document.querySelector('.sidebar');
-            if (sidebar && window.innerWidth <= 768) {
-                // không tự động thêm nút, giữ nguyên, chỉ để style responsive
-                // nếu muốn giữ hành vi y hệt cũ, không thay đổi gì thêm
+            var menuIds = ['heThong', 'giangDay', 'chamDiem', 'thiCu'];
+            
+            function showMenu(id) { 
+                menuIds.forEach(function(m) { 
+                    var el = document.getElementById(m), tg = document.querySelector('[data-menu="' + m + '"]');
+                    if (m === id) { 
+                        el.classList.add('show');
+                        tg.classList.remove('collapsed'); 
+                    } else { 
+                        el.classList.remove('show');
+                        tg.classList.add('collapsed'); 
+                    }
+                }); 
             }
+            
+            // Find active menu
+            var active = document.querySelector('.nav-link.active');
+            var activeId = active ? active.closest('ul').id : null;
+            
+            // If no active found, check URL path
+            if (!activeId) {
+                var path = window.location.pathname;
+                if (path.indexOf('teacher') === 0 || path.indexOf('logout') > 0) activeId = 'heThong';
+                else if (path.indexOf('exam') > 0) activeId = 'giangDay';
+                else if (path.indexOf('score') > 0) activeId = 'chamDiem';
+                else if (path.indexOf('attendance') > 0 || path.indexOf('paper') > 0) activeId = 'thiCu';
+            }
+            
+            showMenu(activeId || menuIds[0]);
+            
+            // Click menu cha
+            document.querySelectorAll('[data-menu]').forEach(function(t) { 
+                t.addEventListener('click', function(e) { 
+                    var id = this.getAttribute('data-menu');
+                    if (menuIds.indexOf(id) >= 0) { showMenu(id); }
+                }); 
+            });
         });
     </script>
     <th:block layout:fragment="script"></th:block>

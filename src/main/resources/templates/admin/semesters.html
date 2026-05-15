@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Quản Lý Học Kỳ - Admin</title>
+    <th:block th:with="activePage='semesters'"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-calendar"></i> Quản Lý Học Kỳ</h2>
+        </div>
+
+        <!-- Form thêm/sửa -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Thêm/Sửa Học Kỳ</h5>
+            </div>
+            <div class="card-body">
+                <form id="semesterForm">
+                    <input type="hidden" id="semesterId">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Mã Học Kỳ</label>
+                            <input type="text" class="form-control" id="semesterCode" required placeholder="HK1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tên Học Kỳ</label>
+                            <input type="text" class="form-control" id="semesterName" required placeholder="Học Kỳ I Năm 2026-2027">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Năm</label>
+                            <input type="number" class="form-control" id="year" required value="2026">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kỳ</label>
+                            <select class="form-select" id="term">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Hành Động</label>
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Lưu
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Ngày Bắt Đầu</label>
+                            <input type="date" class="form-control" id="startDate" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ngày Kết Thúc</label>
+                            <input type="date" class="form-control" id="endDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mô Tả</label>
+                            <input type="text" class="form-control" id="description" placeholder="Mô tả học kỳ...">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Danh Sách Học Kỳ</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã</th>
+                            <th>Tên Học Kỳ</th>
+                            <th>Năm</th>
+                            <th>Kỳ</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="semesterTable">
+                        <tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/semesters';
+
+        // Load all
+        async function loadSemesters() {
+            try {
+                const res = await fetch(`${API_URL}/list`);
+                if (!res.ok) {
+                    console.error("Load error: HTTP", res.status, res.statusText);
+                    renderTable([]);
+                    return;
+                }
+
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (Array.isArray(data?.content) ? data.content : []);
+                renderTable(list);
+            } catch (e) {
+                console.error("Load error:", e);
+                renderTable([]);
+            }
+        }
+
+        // Render table
+        function renderTable(data) {
+            const tbody = document.getElementById("semesterTable");
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+                return;
+            }
+            
+            const now = new Date();
+            let html = '';
+            data.forEach((item, index) => {
+                const start = item.startDate ? new Date(item.startDate) : null;
+                const end = item.endDate ? new Date(item.endDate) : null;
+                let status = '<span class="badge bg-secondary">Chưa bắt đầu</span>';
+                if (start && end) {
+                    if (now >= start && now <= end) {
+                        status = '<span class="badge bg-success">Đang diễn ra</span>';
+                    } else if (now > end) {
+                        status = '<span class="badge bg-secondary">Đã kết thúc</span>';
+                    }
+                }
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.semesterCode || '-'}</td>
+                        <td>${item.semesterName || '-'}</td>
+                        <td>${item.year || '-'}</td>
+                        <td>${item.term || '-'}</td>
+                        <td>${start ? start.toLocaleDateString('vi-VN') : '-'}</td>
+                        <td>${end ? end.toLocaleDateString('vi-VN') : '-'}</td>
+                        <td>${status}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editSemester('${item.id}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSemester('${item.id}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Edit
+        async function editSemester(id) {
+            try {
+                const res = await fetch(`${API_URL}/${id}`);
+                const item = await res.json();
+                
+                document.getElementById("semesterId").value = item.id;
+                document.getElementById("semesterCode").value = item.semesterCode;
+                document.getElementById("semesterName").value = item.semesterName;
+                document.getElementById("year").value = item.year;
+                document.getElementById("term").value = item.term;
+                document.getElementById("description").value = item.description || '';
+                
+                if (item.startDate) {
+                    document.getElementById("startDate").value = new Date(item.startDate).toISOString().split('T')[0];
+                }
+                if (item.endDate) {
+                    document.getElementById("endDate").value = new Date(item.endDate).toISOString().split('T')[0];
+                }
+                
+                // Scroll lên form
+                document.getElementById("semesterForm").scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                console.error("Edit error:", e);
+            }
+        }
+
+        // Delete
+        async function deleteSemester(id) {
+            if (!confirm('Bạn có chắc muốn xóa?')) return;
+            
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadSemesters();
+            } catch (e) {
+                console.error("Delete error:", e);
+            }
+        }
+
+        // Save
+        document.getElementById("semesterForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById("semesterId").value;
+            const data = {
+                semesterCode: document.getElementById("semesterCode").value,
+                semesterName: document.getElementById("semesterName").value,
+                year: parseInt(document.getElementById("year").value),
+                term: parseInt(document.getElementById("term").value),
+                description: document.getElementById("description").value,
+                startDate: document.getElementById("startDate").value ? document.getElementById("startDate").value + 'T00:00:00' : null,
+                endDate: document.getElementById("endDate").value ? document.getElementById("endDate").value + 'T00:00:00' : null
+            };
+            
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                
+                await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                document.getElementById("semesterForm").reset();
+                loadSemesters();
+            } catch (e) {
+                console.error("Save error:", e);
+            }
+        });
+
+        // Init
+        loadSemesters();
+    </script>
+    </div>
+</body>
+</html>

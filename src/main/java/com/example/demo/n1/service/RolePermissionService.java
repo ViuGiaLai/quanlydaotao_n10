@@ -19,7 +19,11 @@ public class RolePermissionService {
     }
 
     public RolePermission assignPermission(UUID roleId, UUID permissionId) {
-        RolePermission rp = new RolePermission(roleId, permissionId);
+        RolePermission rp = new RolePermission();
+        rp.setRoleId(roleId);
+        rp.setPermissionId(permissionId);
+        rp.setIsActive(true);
+        rp.setCreatedAt(java.time.LocalDateTime.now());
         return repository.save(rp);
     }
 

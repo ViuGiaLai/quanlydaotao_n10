@@ -18,6 +18,18 @@
                         <h3 class="mb-0">Quản Lý Điểm</h3>
                     </div>
                     <div class="col-6 text-end">
+                        <button class="btn btn-success me-2" id="openEditBtn" onclick="openEditSelected()" disabled>
+                            <i class="bi bi-unlock"></i> Mở nhập
+                        </button>
+                        <button class="btn btn-warning me-2" id="lockEditBtn" onclick="lockEditSelected()" disabled>
+                            <i class="bi bi-lock"></i> Khóa nhập
+                        </button>
+                        <button class="btn btn-primary me-2" id="approveBtn" onclick="approveSelected()" disabled>
+                            <i class="bi bi-check-circle"></i> Duyệt
+                        </button>
+                        <button class="btn btn-info me-2" id="returnBtn" onclick="returnSelected()" disabled>
+                            <i class="bi bi-arrow-return-left"></i> Trả lại
+                        </button>
                         <button class="btn btn-success me-2" onclick="exportExcel()">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </button>
@@ -77,10 +89,14 @@
                                     <table class="table table-bordered table-hover">
                                         <thead class="table-dark">
                                             <tr>
-                                                <th rowspan="2" class="text-center align-middle">Mã SV</th>
+                                                <th rowspan="2" class="text-center align-middle">
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th rowspan="2" class="text-center align-middle">Mã SV</th>
                                                 <th rowspan="2" class="text-center align-middle">Họ Tên</th>
                                                 <th colspan="4" class="text-center">Điểm Thành Phần</th>
                                                 <th rowspan="2" class="text-center align-middle">Tổng</th>
+                                                <th rowspan="2" class="text-center align-middle">Cho Phép Nhập</th>
                                                 <th rowspan="2" class="text-center align-middle">Trạng Thái</th>
                                                 <th rowspan="2" class="text-center align-middle">Thao Tác</th>
                                             </tr>
@@ -219,6 +235,9 @@
                     pageItems.forEach(r => {
                         html += `
                             <tr>
+                                <td class="text-center">
+                                    <input type="checkbox" class="result-checkbox" value="${r.id}" onchange="updateActionButtons()">
+                                </td>
                                 <td>${r.studentCode || '-'}</td>
                                 <td>${r.studentName || '-'}</td>
                                 <td class="text-center">${r.attendanceScore ?? '-'}</td>
@@ -226,18 +245,23 @@
                                 <td class="text-center">${r.midtermScore ?? '-'}</td>
                                 <td class="text-center">${r.finalScore ?? '-'}</td>
                                 <td class="text-center fw-bold">${r.totalScore ?? 0}</td>
+                                <td class="text-center">${r.isEditable ? '<span class="badge bg-success">Mở</span>' : '<span class="badge bg-danger">Khóa</span>'}</td>
+                                <td>${getStatusBadge(r.status)}</td>
                                 <td>
-                                    <span class="badge ${r.isEditable ? 'bg-success' : 'bg-danger'}">
-                                        ${r.isEditable ? 'Mở nhập' : 'Khóa'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm me-1" onclick="toggleEditable('${r.id}', ${!r.isEditable})" 
+                                    <button class="btn btn-success btn-sm me-1" onclick="toggleEditable('${r.id}', ${r.isEditable ? false : true})" 
                                             title="${r.isEditable ? 'Khóa nhập điểm' : 'Mở nhập điểm'}">
                                         <i class="bi ${r.isEditable ? 'bi-lock' : 'bi-unlock'}"></i>
                                     </button>
-                                    <button class="btn btn-warning btn-sm" onclick="editResult('${r.id}')" title="Chỉnh sửa đặc biệt">
-                                        <i class="bi bi-pencil-square"></i>
+                                    <button class="btn btn-primary btn-sm me-1" onclick="approveScore('${r.id}')" 
+                                            title="Duyệt điểm" ${r.status !== 'SUBMITTED' ? 'disabled' : ''}>
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                    <button class="btn btn-info btn-sm me-1" onclick="returnScore('${r.id}')" 
+                                            title="Trả lại" ${r.status !== 'SUBMITTED' ? 'disabled' : ''}>
+                                        <i class="bi bi-arrow-return-left"></i>
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="editResult('${r.id}')" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -280,22 +304,80 @@
                 renderTable();
             }
 
-            // Toggle isEditable - Mở/Khóa nhập điểm
+            // Toggle isEditable - Mở/Khóa nhập điểm cho 1 record
             async function toggleEditable(id, isEditable) {
                 const action = isEditable ? "mở" : "khóa";
-                if (!confirm(`Bạn có chắc muốn ${action} nh��p điểm cho sinh viên này?`)) return;
+                if (!confirm(`Bạn có chắc muốn ${action} nhập điểm cho sinh viên này?`)) return;
                 
                 try {
-                    const res = await fetch(`${API_URL}/${id}/toggle-edit`, {
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}/toggle-edit`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ isEditable: isEditable })
                     });
-                    if (!res.ok) throw new Error("Toggle failed");
+                    if (!res.ok) {
+                        let message = `Toggle failed (${res.status})`;
+                        const text = await res.text();
+                        try {
+                            const json = JSON.parse(text);
+                            if (json?.message) message = json.message;
+                        } catch (_err) {
+                            if (text) message = text;
+                        }
+                        throw new Error(message);
+                    }
                     loadResults();
                 } catch (e) {
                     console.error("Toggle error:", e);
                     alert("Thất bại: " + e.message);
+                }
+            }
+
+            // Mở nhập điểm hàng loạt
+            async function openEditSelected() {
+                const selected = getSelectedIds();
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn điểm để mở nhập");
+                    return;
+                }
+                if (!confirm(`Mở nhập điểm cho ${selected.length} sinh viên?`)) return;
+                
+                try {
+                    const res = await fetch(`${API_URL}/toggle-edit-multiple`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ids: selected, isEditable: true })
+                    });
+                    if (!res.ok) throw new Error("Mở nhập thất bại");
+                    alert(`Đã mở nhập điểm cho ${selected.length} sinh viên!`);
+                    loadResults();
+                } catch (e) {
+                    console.error("Open edit error:", e);
+                    alert("Lỗi: " + e.message);
+                }
+            }
+
+            // Khóa nhập điểm hàng loạt
+            async function lockEditSelected() {
+                const selected = getSelectedIds();
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn điểm để khóa nhập");
+                    return;
+                }
+                if (!confirm(`Khóa nhập điểm cho ${selected.length} sinh viên?`)) return;
+                
+                try {
+                    const res = await fetch(`${API_URL}/toggle-edit-multiple`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ids: selected, isEditable: false })
+                    });
+                    if (!res.ok) throw new Error("Khóa nhập thất bại");
+                    alert(`Đã khóa nhập điểm cho ${selected.length} sinh viên!`);
+                    loadResults();
+                } catch (e) {
+                    console.error("Lock edit error:", e);
+                    alert("Lỗi: " + e.message);
                 }
             }
 
@@ -331,7 +413,7 @@
                 };
                 
                 try {
-                    const res = await fetch(`${API_URL}/${id}/admin-edit`, {
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}/admin-edit`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(data)
@@ -367,6 +449,114 @@
                 if (courseClassId) url += "&courseClassId=" + courseClassId;
                 if (subjectId) url += "&subjectId=" + subjectId;
                 window.open(url, '_blank');
+            }
+
+            // ========== Score Status Functions ==========
+            
+            // Duyệt 1 điểm
+            async function approveScore(id) {
+                if (!confirm("Duyệt điểm này? Sau khi duyệt, sinh viên sẽ xem được điểm.")) return;
+                try {
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}/approve`, { method: "POST" });
+                    if (!res.ok) throw new Error("Duyệt thất bại");
+                    alert("Đã duyệt điểm!");
+                    loadResults();
+                } catch (e) {
+                    alert("Lỗi: " + e.message);
+                }
+            }
+            
+            // Trả lại 1 điểm
+            async function returnScore(id) {
+                if (!confirm("Trả lại điểm này? Giảng viên sẽ có thể sửa lại.")) return;
+                try {
+                    const res = await fetch(`${API_URL}/${encodeURIComponent(id)}/return`, { method: "POST" });
+                    if (!res.ok) throw new Error("Trả lại thất bại");
+                    alert("Đã trả lại điểm!");
+                    loadResults();
+                } catch (e) {
+                    alert("Lỗi: " + e.message);
+                }
+            }
+            
+            // Duyệt nhiều điểm
+            async function approveSelected() {
+                const selected = getSelectedIds();
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn điểm để duyệt");
+                    return;
+                }
+                if (!confirm(`Duyệt ${selected.length} điểm?`)) return;
+                try {
+                    const res = await fetch(`${API_URL}/approve-multiple`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(selected)
+                    });
+                    if (!res.ok) throw new Error("Duyệt thất bại");
+                    alert(`Đã duyệt ${selected.length} điểm!`);
+                    loadResults();
+                } catch (e) {
+                    alert("Lỗi: " + e.message);
+                }
+            }
+            
+            // Trả lại nhiều điểm
+            async function returnSelected() {
+                const selected = getSelectedIds();
+                if (selected.length === 0) {
+                    alert("Vui lòng chọn điểm để trả lại");
+                    return;
+                }
+                if (!confirm(`Trả lại ${selected.length} điểm?`)) return;
+                try {
+                    const res = await fetch(`${API_URL}/return-multiple`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(selected)
+                    });
+                    if (!res.ok) throw new Error("Trả lại thất bại");
+                    alert(`Đã trả lại ${selected.length} điểm!`);
+                    loadResults();
+                } catch (e) {
+                    alert("Lỗi: " + e.message);
+                }
+            }
+            
+            // Lấy danh sách ID được chọn
+            function getSelectedIds() {
+                const checkboxes = document.querySelectorAll('.result-checkbox:checked');
+                return Array.from(checkboxes).map(cb => cb.value);
+            }
+            
+            // Checkbox all
+            function toggleSelectAll() {
+                const selectAll = document.getElementById("selectAll");
+                const checkboxes = document.querySelectorAll('.result-checkbox');
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                updateActionButtons();
+            }
+            
+            // Cập nhật nút hành động
+            function updateActionButtons() {
+                const selected = getSelectedIds();
+                const submittedItems = resultItems.filter(r => r.status === "SUBMITTED" && selected.includes(r.id));
+                
+                document.getElementById("approveBtn").disabled = submittedItems.length === 0;
+                document.getElementById("returnBtn").disabled = submittedItems.length === 0;
+                document.getElementById("openEditBtn").disabled = selected.length === 0;
+                document.getElementById("lockEditBtn").disabled = selected.length === 0;
+            }
+            
+            // Hiển thị badge trạng thái
+            function getStatusBadge(status) {
+                switch(status) {
+                    case "DRAFT": return '<span class="badge bg-warning">Nháp</span>';
+                    case "SUBMITTED": return '<span class="badge bg-info">Chờ duyệt</span>';
+                    case "APPROVED": return '<span class="badge bg-success">Đã duyệt</span>';
+                    case "REJECTED": return '<span class="badge bg-danger">Trả lại</span>';
+                    default: return '<span class="badge bg-secondary">-</span>';
+                }
             }
 
             document.addEventListener("DOMContentLoaded", async () => {
