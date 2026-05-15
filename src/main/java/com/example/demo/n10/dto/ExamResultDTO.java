@@ -28,6 +28,8 @@ public class ExamResultDTO {
     // Thông tin student từ join
     private String studentCode;
     private String studentName;
+    private String subjectName;
+    private String className;
     
     // Constructor rỗng
     public ExamResultDTO() {}
@@ -98,6 +100,12 @@ public class ExamResultDTO {
     
     public String getStudentName() { return studentName; }
     public void setStudentName(String studentName) { this.studentName = studentName; }
+
+    public String getSubjectName() { return subjectName; }
+    public void setSubjectName(String subjectName) { this.subjectName = subjectName; }
+
+    public String getClassName() { return className; }
+    public void setClassName(String className) { this.className = className; }
     
     // Helper method cho isEditable (tương thích với code cũ)
     public Boolean getIsEditable() {

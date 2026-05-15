@@ -73,22 +73,28 @@
 
                             <div class="mb-3">
                                 <label>Kỳ Thi</label>
-                                <input class="form-control" id="examId">
+                                <select class="form-select" id="examId" required>
+                                    <option value="">-- Chọn Kỳ Thi --</option>
+                                </select>
                             </div>
 
                             <div class="mb-3">
                                 <label>Phòng Thi</label>
-                                <input class="form-control" id="examRoomId">
+                                <select class="form-select" id="examRoomId">
+                                    <option value="">-- Chọn Phòng Thi --</option>
+                                </select>
                             </div>
 
                             <div class="mb-3">
                                 <label>Sinh Viên</label>
-                                <input class="form-control" id="studentId">
+                                <select class="form-select" id="studentId" required>
+                                    <option value="">-- Chọn Sinh Viên --</option>
+                                </select>
                             </div>
 
                             <div class="mb-3">
                                 <label>Số Báo Danh</label>
-                                <input class="form-control" id="rollNumber">
+                                <input class="form-control" id="rollNumber" placeholder="Để trống sẽ tự động sinh">
                             </div>
 
                             <div class="form-check">
@@ -169,6 +175,26 @@
                 }
             }
 
+            function populateDropdowns() {
+                // Populate exam dropdown
+                const examSelect = document.getElementById("examId");
+                examItems.forEach(e => {
+                    examSelect.innerHTML += `<option value="${e.id}">${e.examName || e.name || e.id}</option>`;
+                });
+
+                // Populate room dropdown
+                const roomSelect = document.getElementById("examRoomId");
+                roomItems.forEach(r => {
+                    roomSelect.innerHTML += `<option value="${r.id}">${r.examRoomName || r.roomName || r.name || r.id}</option>`;
+                });
+
+                // Populate student dropdown
+                const studentSelect = document.getElementById("studentId");
+                studentItems.forEach(s => {
+                    studentSelect.innerHTML += `<option value="${s.id}">${s.code || s.studentCode} - ${s.fullName || s.name}</option>`;
+                });
+            }
+
             function getExamName(examId) {
                 if (!examId) return "-";
                 const exam = examItems.find(e => String(e.id) === String(examId));
@@ -187,20 +213,6 @@
                 return student ? (student.name || student.fullname || student.code || studentId) : studentId;
             }
 
-                } catch (e) {
-                    console.error(e);
-                    const el = document.getElementById("registrationTableBody");
-                    if (el) {
-                        el.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-danger text-center">
-                        Lỗi: ${e.message}
-                    </td>
-                </tr>`;
-                    }
-                }
-            }
-
             /* ---------------- RENDER ---------------- */
             function renderTable() {
                 const start = (currentPage - 1) * PAGE_SIZE;
@@ -211,10 +223,10 @@
                 pageItems.forEach(r => {
                     html += `
         <tr>
-            <td>${escapeHtml(getExamName(r.examId))}</td>
-            <td>${escapeHtml(getRoomName(r.examRoomId))}</td>
-            <td>${escapeHtml(getStudentName(r.studentId))}</td>
-            <td>${escapeHtml(r.rollNumber)}</td>
+            <td>${escapeHtml(r.examName || '-')}</td>
+            <td>${escapeHtml(r.roomName || '-')}</td>
+            <td>${escapeHtml(r.studentName || '-')} <small class="text-muted">(${r.studentCode || '-'})</small></td>
+            <td>${escapeHtml(r.rollNumber || '-')}</td>
             <td>
                 <span class="badge ${r.isActive ? 'text-bg-success' : 'text-bg-danger'}">
                     ${r.isActive ? 'Hoạt động' : 'Vô hiệu'}
@@ -286,9 +298,9 @@
 
                 document.getElementById("modalTitle").innerText = "Chỉnh Sửa";
                 document.getElementById("registrationId").value = item.id;
-                document.getElementById("examId").value = item.examId || "";
-                document.getElementById("examRoomId").value = item.examRoomId || "";
-                document.getElementById("studentId").value = item.studentId || "";
+                document.getElementById("examId").value = item.examId || item.examId || "";
+                document.getElementById("examRoomId").value = item.examRoomId || item.examRoomId || "";
+                document.getElementById("studentId").value = item.studentId || item.studentId || "";
                 document.getElementById("rollNumber").value = item.rollNumber || "";
                 document.getElementById("isActive").checked = !!item.isActive;
 
@@ -355,11 +367,10 @@
                     .replaceAll(">", "&gt;");
             }
 
-            document.addEventListener("DOMContentLoaded", () => {
+            document.addEventListener("DOMContentLoaded", async () => {
+                await Promise.all([loadExams(), loadRooms(), loadStudents()]);
+                populateDropdowns();
                 loadRegistrations();
-                loadExams();
-                loadRooms();
-                loadStudents();
             });
         </script>
     </th:block>

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.demo.n10.dto.ExamRegistrationDTO;
 import com.example.demo.n10.model.entity.ExamRegistration;
 import com.example.demo.n10.service.ExamRegistrationService;
 
@@ -22,10 +23,10 @@ public class ExamRegistrationController {
         this.examRegistrationService = examRegistrationService;
     }
 
-    // Lấy tất cả
+    // Lấy tất cả với thông tin chi tiết
     @GetMapping
-    public List<ExamRegistration> getAllExamRegistrations() {
-        return examRegistrationService.findAll();
+    public List<ExamRegistrationDTO> getAllExamRegistrations() {
+        return examRegistrationService.findAllWithDetails();
     }
 
     // Lấy tất cả (alias)

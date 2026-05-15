@@ -41,29 +41,70 @@ public class ExamResultService {
     // Map Object[] sang ExamResultDTO
     private ExamResultDTO mapToDTO(Object[] row) {
         ExamResultDTO dto = new ExamResultDTO();
-        dto.setId((UUID) row[0]);
-        dto.setRegistrationId((UUID) row[1]);
-        dto.setCourseClassId((UUID) row[2]);
-        dto.setSubjectId((UUID) row[3]);
-        dto.setScore((Double) row[4]);
-        dto.setAttendanceScore((Double) row[5]);
-        dto.setTestScore((Double) row[6]);
-        dto.setMidtermScore((Double) row[7]);
-        dto.setFinalScore((Double) row[8]);
-        dto.setTotalScore((Double) row[9]);
-        dto.setStatus((String) row[10]);
-        dto.setGradedBy((LocalDateTime) row[11]);
-        dto.setGradedAt((LocalDateTime) row[12]);
-        dto.setIsLocked((Boolean) row[13]);
-        dto.setEditStatus((String) row[14]);
-        dto.setScoreType((String) row[15]);
-        dto.setCreatedAt((LocalDateTime) row[16]);
-        dto.setUpdatedAt((LocalDateTime) row[17]);
-        dto.setIsActive((Boolean) row[22]);
-        // Student info từ join (index 24, 25)
-        dto.setStudentCode((String) row[24]);
-        dto.setStudentName((String) row[25]);
+        dto.setId(toUUID(row[0]));
+        dto.setRegistrationId(toUUID(row[1]));
+        dto.setCourseClassId(toUUID(row[2]));
+        dto.setSubjectId(toUUID(row[3]));
+        dto.setScore(toDouble(row[4]));
+        dto.setAttendanceScore(toDouble(row[5]));
+        dto.setTestScore(toDouble(row[6]));
+        dto.setMidtermScore(toDouble(row[7]));
+        dto.setFinalScore(toDouble(row[8]));
+        dto.setTotalScore(toDouble(row[9]));
+        dto.setStatus(toString(row[10]));
+        dto.setGradedBy(toLocalDateTime(row[11]));
+        dto.setGradedAt(toLocalDateTime(row[12]));
+        dto.setIsLocked(toBoolean(row[13]));
+        dto.setEditStatus(toString(row[14]));
+        dto.setScoreType(toString(row[15]));
+        dto.setCreatedAt(toLocalDateTime(row[16]));
+        dto.setUpdatedAt(toLocalDateTime(row[17]));
+        dto.setIsActive(toBoolean(row[22]));
+        // Student info từ join (index 25, 26, 27, 28)
+        dto.setStudentCode(toString(row[25]));
+        dto.setStudentName(toString(row[26]));
+        dto.setSubjectName(toString(row[27]));
+        dto.setClassName(toString(row[28]));
         return dto;
+    }
+    
+    // Safe type conversion helpers
+    private UUID toUUID(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof UUID) return (UUID) obj;
+        if (obj instanceof String s && !s.isEmpty()) {
+            try { return UUID.fromString(s); } catch (Exception e) { return null; }
+        }
+        return null;
+    }
+    
+    private Double toDouble(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Double) return (Double) obj;
+        if (obj instanceof Number) return ((Number) obj).doubleValue();
+        if (obj instanceof String s) {
+            try { return Double.parseDouble(s); } catch (Exception e) { return null; }
+        }
+        return null;
+    }
+    
+    private String toString(Object obj) {
+        if (obj == null) return null;
+        return obj.toString();
+    }
+    
+    private Boolean toBoolean(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Boolean) return (Boolean) obj;
+        if (obj instanceof Number) return ((Number) obj).intValue() != 0;
+        if (obj instanceof String s) return Boolean.parseBoolean(s);
+        return null;
+    }
+    
+    private LocalDateTime toLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof LocalDateTime) return (LocalDateTime) obj;
+        return null;
     }
 
     // Tìm kiếm kết quả thi theo ID

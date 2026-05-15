@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.n10.dto.ExamRegistrationDTO;
 import com.example.demo.n10.model.entity.ExamRegistration;
 import com.example.demo.n10.repository.ExamRegistrationRepository;
 
@@ -22,9 +23,53 @@ public class ExamRegistrationService {
         this.examRegistrationRepository = examRegistrationRepository;
     }
 
-    // Hiển thị tất cả đ��ng ký thi
+    // Hiển thị tất cả đăng ký thi
     public List<ExamRegistration> findAll() {
         return examRegistrationRepository.findAll();
+    }
+    
+    // Hiển thị tất cả với thông tin chi tiết (DTO)
+    public List<ExamRegistrationDTO> findAllWithDetails() {
+        List<Object[]> rows = examRegistrationRepository.findAllWithDetails();
+        return rows.stream().map(this::mapToDTO).toList();
+    }
+    
+    // Map Object[] sang DTO
+    private ExamRegistrationDTO mapToDTO(Object[] row) {
+        ExamRegistrationDTO dto = new ExamRegistrationDTO();
+        dto.setId(toUUID(row[0]));
+        dto.setExamId(toUUID(row[1]));
+        dto.setExamRoomId(toUUID(row[2]));
+        dto.setStudentId(toUUID(row[3]));
+        dto.setRollNumber(toString(row[4]));
+        dto.setIsActive(toBoolean(row[5]));
+        dto.setExamName(toString(row[6]));
+        dto.setRoomName(toString(row[7]));
+        dto.setStudentName(toString(row[8]));
+        dto.setStudentCode(toString(row[9]));
+        return dto;
+    }
+    
+    private UUID toUUID(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof UUID) return (UUID) obj;
+        if (obj instanceof String s && !s.isEmpty()) {
+            try { return UUID.fromString(s); } catch (Exception e) { return null; }
+        }
+        return null;
+    }
+    
+    private String toString(Object obj) {
+        if (obj == null) return null;
+        return obj.toString();
+    }
+    
+    private Boolean toBoolean(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Boolean) return (Boolean) obj;
+        if (obj instanceof Number) return ((Number) obj).intValue() != 0;
+        if (obj instanceof String s) return Boolean.parseBoolean(s);
+        return null;
     }
 
     // Tìm kiếm đăng ký thi theo ID
