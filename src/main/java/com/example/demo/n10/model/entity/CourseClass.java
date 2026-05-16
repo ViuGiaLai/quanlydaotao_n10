@@ -12,6 +12,9 @@ public class CourseClass {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Version
+    private Long version;
+
     @Column(name = "class_code", columnDefinition = "NVARCHAR(50)", nullable = false)
     private String classCode;
 
@@ -206,5 +209,13 @@ public class CourseClass {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

@@ -3,6 +3,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -20,6 +21,7 @@ public class User {
     @Column(name = "username", length = 50)
     private String username;
 
+    @JsonIgnore
     @Column(name = "password", length = 255)
     private String password;
 

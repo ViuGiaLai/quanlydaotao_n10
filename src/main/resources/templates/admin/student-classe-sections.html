@@ -91,18 +91,23 @@
                     <div class="row">
                         <div class="col-md-4">
                             <label class="form-label">Mã Sinh Viên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="studentId" required placeholder="SV001">
+                            <select class="form-select" id="studentId" required>
+                                <option value="">-- Chọn Sinh Viên --</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Mã Lớp <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="studentClasseId" required placeholder="KST23I">
+                            <select class="form-select" id="studentClasseId" required>
+                                <option value="">-- Chọn Lớp --</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Trạng Thái</label>
                             <select class="form-select" id="status">
                                 <option value="studying">Đang học</option>
-                                <option value="completed">Hoàn thành</option>
-                                <option value="dropped">Bỏ học</option>
+                                <option value="reserved">Bảo lưu</option>
+                                <option value="dropped">Nghỉ học</option>
+                                <option value="graduated">Tốt nghiệp</option>
                             </select>
                         </div>
                     </div>
@@ -170,12 +175,30 @@
         let students = [];
         let previewData = [];
 
+        // Load students for dropdown
+        async function loadStudents() {
+            try {
+                const res = await fetch(STUDENT_URL);
+                students = await res.json();
+                const select = document.getElementById("studentId");
+                students.forEach(s => {
+                    const opt = document.createElement("option");
+                    opt.value = s.id;
+                    opt.textContent = `${s.code} - ${s.fullname}`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Load students error:", e);
+            }
+        }
+
         // Load student classes for dropdown
         async function loadStudentClasses() {
             try {
                 const res = await fetch(STUDENT_CLASSE_URL);
                 studentClasses = await res.json();
                 renderStudentClasseDropdown();
+                renderFormStudentClasseDropdown();
             } catch (e) {
                 console.error("Load student classes error:", e);
             }
@@ -187,6 +210,16 @@
                 html += `<option value="${sc.id}">${sc.code} - ${sc.name}</option>`;
             });
             document.getElementById("importStudentClasseId").innerHTML = html;
+        }
+
+        function renderFormStudentClasseDropdown() {
+            const select = document.getElementById("studentClasseId");
+            studentClasses.forEach(sc => {
+                const opt = document.createElement("option");
+                opt.value = sc.id;
+                opt.textContent = `${sc.code} - ${sc.name}`;
+                select.appendChild(opt);
+            });
         }
 
         // Download template
@@ -408,9 +441,14 @@
 
         async function loadSections() {
             try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                sectionItems = Array.isArray(data) ? data : [];
+                const [res1, res2, res3] = await Promise.all([
+                    fetch(API_URL),
+                    fetch(STUDENT_URL),
+                    fetch(STUDENT_CLASSE_URL)
+                ]);
+                sectionItems = await res1.json();
+                students = await res2.json();
+                studentClasses = await res3.json();
                 renderTable();
             } catch (e) {
                 console.error("Load error:", e);
@@ -428,16 +466,18 @@
             
             let html = '';
             sectionItems.forEach((s, index) => {
+                const student = students.find(st => st.id === s.studentId) || {};
+                const studentClasse = studentClasses.find(sc => sc.id === s.studentClasseId) || {};
                 const startDate = s.startDate ? new Date(s.startDate).toLocaleDateString('vi-VN') : '-';
                 const endDate = s.endDate ? new Date(s.endDate).toLocaleDateString('vi-VN') : '-';
-                const statusBadge = s.status === 'studying' ? 'bg-primary' : (s.status === 'completed' ? 'bg-success' : 'bg-danger');
-                const statusText = s.status === 'studying' ? 'Đang học' : (s.status === 'completed' ? 'Hoàn thành' : 'Bỏ học');
+                const statusBadge = s.status === 'studying' ? 'bg-primary' : (s.status === 'reserved' ? 'bg-warning' : (s.status === 'graduated' ? 'bg-success' : 'bg-danger'));
+                const statusText = s.status === 'studying' ? 'Đang học' : (s.status === 'reserved' ? 'Bảo lưu' : (s.status === 'graduated' ? 'Tốt nghiệp' : 'Nghỉ học'));
                 
                 html += `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${s.studentId || '-'}</td>
-                        <td>${s.studentClasseId || '-'}</td>
+                        <td>${student.code || '-'}</td>
+                        <td>${studentClasse.code || '-'}</td>
                         <td><span class="badge ${statusBadge}">${statusText}</span></td>
                         <td>${startDate}</td>
                         <td>${endDate}</td>
@@ -523,6 +563,7 @@
             }
         });
 
+        loadStudents();
         loadStudentClasses();
         loadSections();
     </script>

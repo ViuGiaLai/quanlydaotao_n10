@@ -37,7 +37,9 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Khoa</label>
-                            <input type="text" class="form-control" id="department" placeholder="Khoa Toán">
+                            <select class="form-select" id="department">
+                                <option value="">-- Chọn Khoa --</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -89,6 +91,24 @@
 
     <script>
         const API_URL = '/api/subjects';
+        const DEPT_API_URL = '/api/departments';
+
+        // Load departments for select
+        async function loadDepartments() {
+            try {
+                const res = await fetch(DEPT_API_URL + '/active');
+                const data = await res.json();
+                const select = document.getElementById("department");
+                data.forEach(dept => {
+                    const opt = document.createElement("option");
+                    opt.value = dept.name;
+                    opt.textContent = dept.name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Load departments error:", e);
+            }
+        }
 
         // Load all
         async function loadSubjects() {
@@ -196,6 +216,7 @@
         });
 
         // Init
+        loadDepartments();
         loadSubjects();
     </script>
     </div>

@@ -146,12 +146,14 @@
         const API_SUBJECTS = '/api/subjects/list';
         const API_SEMESTERS = '/api/semesters/list';
         const API_COURSE_CLASSES = '/api/course-classes/list';
-        const API_USERS = '/api/users/list';
+        const API_TEACHERS = '/api/teachers/list';
 
         let allSubjects = [];
         let allTeachers = [];
         let pcmPreviewData = [];
+        let ccsData = [];
 
+        // Download template
         function downloadPCMTemplate() {
             const headers = ['STT', 'MaLop', 'MaMon', 'MaGV', 'GhiChu'];
             const sample = [['1', 'KST23I', 'MATH101', 'GV001', 'Lớp chính']];
@@ -252,36 +254,46 @@
         }
 
         // Load lookup data
-        window.loadLookupData = async function () {
+        async function loadLookupData() {
             try {
-                const [semestersRes, subjectsRes, usersRes] = await Promise.all([
+                const [semestersRes, subjectsRes, teachersRes] = await Promise.allSettled([
                     fetch(API_SEMESTERS),
                     fetch(API_SUBJECTS),
-                    fetch(API_USERS + '?role=TEACHER')
+                    fetch(API_TEACHERS)
                 ]);
-                
-                const semesters = await semestersRes.json();
-                allSubjects = await subjectsRes.json();
-                allTeachers = await usersRes.json();
-                
+
+                const semesters = semestersRes.status === 'fulfilled' && semestersRes.value.ok
+                    ? await semestersRes.value.json()
+                    : [];
+                allSubjects = subjectsRes.status === 'fulfilled' && subjectsRes.value.ok
+                    ? await subjectsRes.value.json()
+                    : [];
+                allTeachers = teachersRes.status === 'fulfilled' && teachersRes.value.ok
+                    ? await teachersRes.value.json()
+                    : [];
+
                 // Fill semesters
                 const semesterSelect = document.getElementById("semesterId");
                 semesters.forEach(s => {
                     semesterSelect.innerHTML += `<option value="${s.id}">${s.name || s.semesterName}</option>`;
                 });
-                
+
                 // Fill subjects dropdown
                 const subjectSelect = document.getElementById("newSubjectId");
                 allSubjects.forEach(s => {
                     subjectSelect.innerHTML += `<option value="${s.id}">${s.subjectCode} - ${s.subjectName}</option>`;
                 });
+
+                if (allTeachers.length === 0) {
+                    console.warn('No teachers loaded for course-class-subjects');
+                }
             } catch (e) {
                 console.error("Load lookup error:", e);
             }
         }
 
         // Load course classes by semester
-        window.loadCourseClasses = async function () {
+        async function loadCourseClasses() {
             const semesterId = document.getElementById("semesterId").value;
             const classSelect = document.getElementById("courseClassId");
             
@@ -305,7 +317,7 @@
         }
 
         // Load subjects for selected class
-        window.loadSubjects = async function () {
+        async function loadSubjects() {
             const courseClassId = document.getElementById("courseClassId").value;
             
             if (!courseClassId) {
@@ -323,7 +335,7 @@
         }
 
         // Render table
-        window.renderSubjectTable = function (data) {
+        function renderSubjectTable(data) {
             const tbody = document.getElementById("subjectTable");
             ccsData = data;
             
@@ -359,7 +371,7 @@
         }
 
         // Add subject to class
-        window.addSubject = async function () {
+        async function addSubject() {
             const courseClassId = document.getElementById("courseClassId").value;
             const subjectId = document.getElementById("newSubjectId").value;
             
@@ -391,7 +403,7 @@
         }
 
         // Delete subject from class
-        window.deleteSubject = async function (id) {
+        async function deleteSubject(id) {
             if (!confirm('Bạn có chắc muốn xóa môn học này khỏi lớp?')) {
                 return;
             }
@@ -413,7 +425,7 @@
         }
 
         // Edit teacher - show modal
-        window.editTeacher = function (id) {
+        function editTeacher(id) {
             const item = ccsData.find(c => c.id === id);
             if (!item) return;
             
@@ -442,7 +454,7 @@
         }
 
         // Save teacher assignment
-        window.saveTeacher = async function () {
+        async function saveTeacher() {
             const id = document.getElementById("ccsId").value;
             const teacherId = document.getElementById("teacherId").value;
             
@@ -474,10 +486,8 @@
             }
         }
 
-        let ccsData = [];
-
         // Init
-        window.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             loadLookupData();
         });
     </script>

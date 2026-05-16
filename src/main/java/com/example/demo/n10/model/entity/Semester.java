@@ -12,6 +12,9 @@ public class Semester {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Version
+    private Long version;
+
     @Column(name = "semester_code", columnDefinition = "NVARCHAR(50)", nullable = false)
     private String semesterCode;
 
@@ -173,5 +176,13 @@ public class Semester {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

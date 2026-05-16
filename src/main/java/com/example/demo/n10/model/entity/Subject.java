@@ -12,6 +12,9 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Version
+    private Long version;
+
     @Column(name = "subject_code", columnDefinition = "NVARCHAR(50)", nullable = false)
     private String subjectCode;
 
@@ -151,5 +154,13 @@ public class Subject {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

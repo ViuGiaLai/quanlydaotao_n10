@@ -24,6 +24,11 @@ public class SemesterController {
         return semesterService.findAll();
     }
 
+    @GetMapping("/active")
+    public List<Semester> getActiveSemesters() {
+        return semesterService.findActive();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Semester> getSemesterById(@PathVariable UUID id) {
         return semesterService.findById(id)
@@ -47,7 +52,9 @@ public class SemesterController {
                     existingSemester.setEndDate(semester.getEndDate());
                     existingSemester.setYear(semester.getYear());
                     existingSemester.setTerm(semester.getTerm());
-                    existingSemester.setIsActive(semester.getIsActive());
+                    if (semester.getIsActive() != null) {
+                        existingSemester.setIsActive(semester.getIsActive());
+                    }
                     return ResponseEntity.ok(semesterService.save(existingSemester));
                 })
                 .orElse(ResponseEntity.notFound().build());

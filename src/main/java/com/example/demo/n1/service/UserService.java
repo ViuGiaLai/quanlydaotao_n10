@@ -63,7 +63,9 @@ public class UserService {
     public User updateUser(UUID id, String username, String password, String email, String phone, String avatarUrl) {
         User existing = userRepo.findById(id).orElseThrow();
         existing.setUsername(username);
-        existing.setPassword(passwordEncoder.encode(password));
+        if (password != null && !password.isBlank()) {
+            existing.setPassword(passwordEncoder.encode(password));
+        }
         existing.setEmail(email);
         existing.setPhone(phone);
         existing.setAvatarUrl(avatarUrl);
@@ -82,7 +84,11 @@ public class UserService {
 
     public User saveUser(User user) {
         if (user.getId() == null) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            String rawPassword = user.getPassword();
+            if (rawPassword == null || rawPassword.isBlank()) {
+                rawPassword = "123456";
+            }
+            user.setPassword(passwordEncoder.encode(rawPassword));
         }
         return userRepo.save(user);
     }

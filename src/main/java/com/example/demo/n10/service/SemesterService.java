@@ -22,6 +22,10 @@ public class SemesterService {
         return repository.findAll();
     }
 
+    public List<Semester> findActive() {
+        return repository.findByIsActiveTrue();
+    }
+
     public Optional<Semester> findById(UUID id) {
         return repository.findById(id);
     }
@@ -29,6 +33,9 @@ public class SemesterService {
     public Semester save(Semester semester) {
         if (semester.getId() == null) {
             semester.setCreatedAt(LocalDateTime.now());
+            if (semester.getIsActive() == null) {
+                semester.setIsActive(true);
+            }
         }
         semester.setUpdatedAt(LocalDateTime.now());
         return repository.save(semester);

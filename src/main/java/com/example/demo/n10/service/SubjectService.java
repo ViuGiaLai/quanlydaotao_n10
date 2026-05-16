@@ -29,6 +29,9 @@ public class SubjectService {
     public Subject save(Subject subject) {
         if (subject.getId() == null) {
             subject.setCreatedAt(LocalDateTime.now());
+            if (subject.getIsActive() == null) {
+                subject.setIsActive(true);
+            }
         }
         subject.setUpdatedAt(LocalDateTime.now());
         return repository.save(subject);

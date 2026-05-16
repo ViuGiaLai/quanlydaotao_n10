@@ -24,12 +24,16 @@
                     <input type="hidden" id="advisorId">
                     <div class="row">
                         <div class="col-md-4">
-                            <label class="form-label">Mã Giảng Viên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="employeeId" required placeholder="GV001">
+                            <label class="form-label">Giảng Viên <span class="text-danger">*</span></label>
+                            <select class="form-select" id="employeeId" required>
+                                <option value="">-- Chọn Giảng Viên --</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Mã Lớp Sinh Viên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="studentClasseId" required placeholder="KST23I">
+                            <label class="form-label">Lớp Sinh Viên <span class="text-danger">*</span></label>
+                            <select class="form-select" id="studentClasseId" required>
+                                <option value="">-- Chọn Lớp Sinh Viên --</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Kích Hoạt</label>
@@ -73,8 +77,8 @@
                     <thead>
                         <tr>
                             <th>STT</th>
-                            <th>Mã GV</th>
-                            <th>Mã Lớp</th>
+                            <th>Giảng Viên</th>
+                            <th>Lớp Sinh Viên</th>
                             <th>Ngày Bắt Đầu</th>
                             <th>Ngày Kết Thúc</th>
                             <th>Trạng Thái</th>
@@ -91,13 +95,62 @@
 
     <script>
         const API_URL = '/api/advisor-classe-sections';
+        const TEACHER_API = '/api/teachers';
+        const STUDENT_CLASS_API = '/api/student-classes';
         let advisorItems = [];
+        let allTeachers = [];
+        let allStudentClasses = [];
+
+        // Load teachers for dropdown
+        async function loadTeachers() {
+            try {
+                const res = await fetch(TEACHER_API);
+                allTeachers = await res.json();
+                const select = document.getElementById("employeeId");
+                if (!select) return;
+                // reset options
+                select.innerHTML = '<option value="">-- Chọn Giảng Viên --</option>';
+                allTeachers.forEach(t => {
+                    const opt = document.createElement("option");
+                    opt.value = t.id;
+                    opt.textContent = `${t.code} - ${t.fullname}`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Load teachers error:", e);
+            }
+        }
+
+        // Load student classes for dropdown
+        async function loadStudentClasses() {
+            try {
+                const res = await fetch(STUDENT_CLASS_API);
+                allStudentClasses = await res.json();
+                const select = document.getElementById("studentClasseId");
+                if (!select) return;
+                // reset options
+                select.innerHTML = '<option value="">-- Chọn Lớp Sinh Viên --</option>';
+                allStudentClasses.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = c.id;
+                    opt.textContent = `${c.code} - ${c.name}`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Load student classes error:", e);
+            }
+        }
 
         async function loadAdvisors() {
             try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                advisorItems = Array.isArray(data) ? data : [];
+                const [res1, res2, res3] = await Promise.all([
+                    fetch(API_URL),
+                    fetch(TEACHER_API),
+                    fetch(STUDENT_CLASS_API)
+                ]);
+                advisorItems = await res1.json();
+                allTeachers = await res2.json();
+                allStudentClasses = await res3.json();
                 renderTable();
             } catch (e) {
                 console.error("Load error:", e);
@@ -115,17 +168,19 @@
             
             let html = '';
             advisorItems.forEach((a, index) => {
+                const teacher = allTeachers.find(t => t.id === a.employeeId) || {};
+                const studentClass = allStudentClasses.find(c => c.id === a.studentClasseId) || {};
                 const startDate = a.startDate ? new Date(a.startDate).toLocaleDateString('vi-VN') : '-';
                 const endDate = a.endDate ? new Date(a.endDate).toLocaleDateString('vi-VN') : '-';
-                const isActive = a.isActive !== false ? 
+                const isActive = a.isActive !== false ?
                     '<span class="badge bg-success">Hoạt động</span>' : 
                     '<span class="badge bg-secondary">Khóa</span>';
                 
                 html += `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${a.employeeId || '-'}</td>
-                        <td>${a.studentClasseId || '-'}</td>
+                        <td>${teacher.code || '-'}</td>
+                        <td>${studentClass.code || '-'}</td>
                         <td>${startDate}</td>
                         <td>${endDate}</td>
                         <td>${isActive}</td>
@@ -155,6 +210,7 @@
                 document.getElementById("endDate").value = a.endDate ? a.endDate.split('T')[0] : '';
                 document.getElementById("isActive").checked = a.isActive !== false;
                 
+                // Scroll to form
                 document.getElementById("advisorForm").scrollIntoView({ behavior: 'smooth' });
             } catch (e) {
                 console.error("Edit error:", e);
@@ -208,7 +264,13 @@
             }
         });
 
-        loadAdvisors();
+        // populate selects first, then load advisor records
+        Promise.all([loadTeachers(), loadStudentClasses()])
+            .then(() => loadAdvisors())
+            .catch(err => {
+                console.error('Init load error:', err);
+                loadAdvisors();
+            });
     </script>
     </div>
 </body>

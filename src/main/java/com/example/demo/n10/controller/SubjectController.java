@@ -50,7 +50,9 @@ public class SubjectController {
                     existingSubject.setDescription(subject.getDescription());
                     existingSubject.setCredits(subject.getCredits());
                     existingSubject.setDepartment(subject.getDepartment());
-                    existingSubject.setIsActive(subject.getIsActive());
+                    if (subject.getIsActive() != null) {
+                        existingSubject.setIsActive(subject.getIsActive());
+                    }
                     return ResponseEntity.ok(subjectService.save(existingSubject));
                 })
                 .orElse(ResponseEntity.notFound().build());
